@@ -1,0 +1,77 @@
+name: Docker CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+# Prevent overlapping runs on the same branch/PR
+concurrency:
+  group: docker-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-smoke-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ---- Fast feedback: TS typecheck (optional but recommended)
+      - name: Use Node 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install deps (CI)
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      # ---- Docker build (no push; cache via GitHub Actions cache)
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false # build only (no registry push)
+          load: true # load into local Docker to run tests
+          tags: pm-backend:ci-${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # ---- Smoke test: run container and hit /api/health
+      - name: Run container
+        run: |
+          docker run -d --rm -p 3000:3000 --name pm-backend pm-backend:ci-${{ github.sha }}
+          # simple wait loop for server to boot
+          for i in {1..20}; do
+            if curl -sSf http://localhost:3000/api/health > /dev/null; then
+              echo "Service is up."
+              exit 0
+            fi
+            echo "Waiting for service..."
+            sleep 1
+          done
+          echo "Service did not start in time."
+          docker logs pm-backend || true
+          exit 1
+
+      - name: Verify /api/health response
+        run: |
+          curl -sS http://localhost:3000/api/health | tee /tmp/health.json
+          jq -e '.ok == true' /tmp/health.json
+
+      - name: Show recent logs (on failure)
+        if: failure()
+        run: docker logs pm-backend || true
