@@ -9,7 +9,7 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 
-// Routes
+// Routes under /api prefix
 app.use("/api", routes)
 
 // Centralized error handler
