@@ -23,15 +23,15 @@ FROM node:20-alpine AS runner
 
 WORKDIR /app
 
-# Copy only necessary files from builder
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/dist ./dist
+
+# Ensure prod mode so logger won't try to load pino-pretty
+ENV NODE_ENV=production
 
 # Install only prod deps
 RUN npm ci --omit=dev
 
-# Expose port
 EXPOSE 3000
-
-# Run the app
 CMD ["node", "dist/index.js"]
+
