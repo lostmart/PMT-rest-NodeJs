@@ -25,15 +25,42 @@ Future versions will add **SQLite** for data persistence.
 ## 📂 Project Structure
 
 ```
-src/
-├─ index.ts # starts the server
-├─ server.ts # app setup (middlewares, routes, error handling)
-├─ routes/ # API routes
-│ ├─ index.ts
-│ ├─ health.ts
-│ └─ echo.ts
-└─ utils/ # utilities
-└─ logger.ts
+├─ data/ # local SQLite files (gitignored: app.db, -wal, -shm)
+├─ src/
+│ ├─ index.ts             # process bootstrap (reads PORT, starts server)
+│ ├─ server.ts            # Express app wiring (middlewares, routes, errors)
+│ │
+│ ├─ config/              # Configuration & env helpers
+│ │
+│ ├─ db/
+│ │ └─ sqlite.ts          # SQLite connection, pragmas, migrate() (auto-run)
+│ │
+│ ├─ controllers/
+│ │ └─ user.controller.ts # HTTP layer for /api/users (validation, status codes)
+│ │
+│ ├─ services/
+│ │ └─ user.service.ts    # Business logic + SQLite queries, Argon2 hashing
+│ │
+│ ├─ models/
+│ │ ├─ user.ts            # Domain types (User, UserRole)
+│ │ └─ user.dto.ts        # Request/response DTOs if needed
+│ │
+│ ├─ routes/
+│ │ ├─ index.ts           # Routes aggregator: mounts /api/*
+│ │ ├─ health.ts          # GET /api/health
+│ │ ├─ echo.ts            # POST /api/echo
+│ │ └─ users.ts           # /api/users CRUD -> controller -> service
+│ │
+│ └─ utils/
+│ ├─ logger.ts            # pino logger (pretty in dev, JSON in prod)
+│ ├─ user.mappers.ts      # DTO ↔ domain mapping helpers
+│ └─ index.ts             # shared utilities (optional)
+│
+├─ Dockerfile
+├─ .dockerignore
+├─ .gitignore
+├─ package.json
+└─ tsconfig.json
 ```
 
 ## 🛠️ Scripts
