@@ -21,8 +21,9 @@ export function migrate(): void {
       email      TEXT NOT NULL UNIQUE,
       userName   TEXT NOT NULL UNIQUE,
       firstName  TEXT NOT NULL,
+      password  TEXT NOT NULL,
       lastName   TEXT NOT NULL,
-      role       TEXT NOT NULL CHECK (role IN ('admin','collaborator','guest')),
+      role       TEXT NOT NULL,
       createdAt  TEXT NOT NULL,
       updatedAt  TEXT NOT NULL
     );

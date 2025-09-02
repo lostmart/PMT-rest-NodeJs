@@ -1,6 +1,9 @@
 import { randomUUID } from "node:crypto"
 import { db } from "../db/sqlite"
-import { CreateUserBody, UpdateUserBody, User } from "../models/user"
+import { CreateUserBody, UpdateUserBody, User, UserRole } from "../models/user"
+import bcrypt from "bcrypt"
+
+const SALT_ROUNDS = 12
 
 // Prepared statements (no fancy generics; cast results when reading)
 const selectAll = db.prepare(
@@ -23,7 +26,7 @@ const selectByUserEx = db.prepare(
 )
 
 const insertUser = db.prepare(
-	"INSERT INTO users (id,email,userName,firstName,lastName,role,createdAt,updatedAt) VALUES (?,?,?,?,?,?,?,?)"
+	"INSERT INTO users (id,email,password,userName,firstName,lastName,role,createdAt,updatedAt) VALUES (?,?,?,?,?,?,?,?,?)"
 )
 const updateUser = db.prepare(
 	"UPDATE users SET email=?, userName=?, firstName=?, lastName=?, role=?, updatedAt=? WHERE id=?"
@@ -31,6 +34,25 @@ const updateUser = db.prepare(
 const deleteUser = db.prepare("DELETE FROM users WHERE id = ?")
 
 export const userService = {
+	async hashPassword(password: string): Promise<string> {
+		return bcrypt.hash(password, SALT_ROUNDS)
+	},
+
+	async comparePassword(
+		password: string,
+		hashedPassword: string
+	): Promise<boolean> {
+		return bcrypt.compare(password, hashedPassword)
+	},
+
+	// If you have authentication methods, use comparePassword
+	async authenticate(email: string, password: string) {
+		const user = selectByEmail.get(email) as User
+		if (!user) return false
+
+		return this.comparePassword(password, user?.password)
+	},
+
 	list(): User[] {
 		return selectAll.all() as User[]
 	},
@@ -40,15 +62,22 @@ export const userService = {
 		return (row as User) ?? null
 	},
 
-	create(input: CreateUserBody): User {
+	// Update your create method to hash password
+	// async create(userData: CreateUserBody): Promise<void> {
+	// const hashedPassword = await this.hashPassword(userData.password)
+	// ... rest of your create logic using hashedPassword
+	// },
+
+	async create(input: CreateUserBody): Promise<User> {
 		const now = new Date().toISOString()
+		const hashedPassword = await this.hashPassword(input.password)
 		const user: User = {
 			id: randomUUID(),
 			email: input.email.trim(),
 			userName: input.userName.trim(),
 			firstName: input.firstName.trim(),
-            lastName: input.lastName.trim(),
-            password: input.password.trim(),
+			lastName: input.lastName.trim(),
+			password: hashedPassword,
 			role: input.role, // controller should validate; DB CHECK enforces too
 			createdAt: now,
 			updatedAt: now,
@@ -63,7 +92,8 @@ export const userService = {
 				user.lastName,
 				user.role,
 				user.createdAt,
-				user.updatedAt
+				user.updatedAt,
+				user.password
 			)
 			return user
 		} catch (e: any) {
@@ -94,7 +124,7 @@ export const userService = {
 				next.userName,
 				next.firstName,
 				next.lastName,
-				next.role,
+				next.role as UserRole,
 				next.updatedAt,
 				id
 			)
@@ -123,5 +153,3 @@ export const userService = {
 			: !!selectByUserName.get(userName)
 	},
 }
-
-export type UserRole = "admin" | "collaborator" | "guest"

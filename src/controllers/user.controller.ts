@@ -1,7 +1,14 @@
+// controllers/user.controller.ts
 import { RequestHandler } from "express"
 import { userService } from "../services/user.service"
 import { logger } from "../utils/logger"
-import { CreateUserBody, UpdateUserBody, UserRole } from "../models/user"
+import { CreateUserBody, UpdateUserBody, UserRole, User } from "../models/user"
+import {
+	UserResponseDTO,
+	CreateUserResponseDTO,
+	UsersListResponseDTO,
+} from "../models/user.dto"
+import { toUserResponseDTO, toUsersListResponseDTO } from "../utils/user.mappers"
 
 const allowedRoles: readonly UserRole[] = [
 	"admin",
@@ -13,22 +20,42 @@ const isEmail = (e: unknown): e is string =>
 	typeof e === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)
 const isNonEmptyString = (s: unknown): s is string =>
 	typeof s === "string" && s.trim().length > 0
+const isValidPassword = (p: unknown): p is string =>
+	typeof p === "string" && p.length >= 8
 
 /* ---------- handlers ---------- */
 
 const list: RequestHandler = (_req, res) => {
-	res.json({ users: userService.list() })
+	const users = userService.list()
+	const response: UsersListResponseDTO = toUsersListResponseDTO(users)
+	res.json(response)
 }
 
 const getById: RequestHandler<{ id: string }> = (req, res) => {
-	const u = userService.get(req.params.id)
-	if (!u) return res.status(404).json({ error: "User not found" })
-	res.json(u)
+	const user = userService.get(req.params.id)
+	if (!user) return res.status(404).json({ error: "User not found" })
+
+	const response: UserResponseDTO = toUserResponseDTO(user)
+	res.json(response)
 }
 
-const create: RequestHandler<{}, any, CreateUserBody> = (req, res) => {
-	const { userName, email, firstName, lastName, role, password } =
+const create: RequestHandler<{}, any, CreateUserBody> = async (req, res) => {
+	const { userName, email, firstName, lastName, password, role } =
 		req.body || ({} as CreateUserBody)
+
+	logger.debug({ userName, email, firstName, lastName, password, role })
+
+	// Validate and set the role
+	let userRole: UserRole
+	if (role && allowedRoles.includes(role as UserRole)) {
+		userRole = role as UserRole
+	} else if (role) {
+		return res.status(400).json({
+			error: "`role` must be one of: admin | collaborator | guest",
+		})
+	} else {
+		userRole = "guest"
+	}
 
 	if (!isNonEmptyString(userName))
 		return res
@@ -44,10 +71,10 @@ const create: RequestHandler<{}, any, CreateUserBody> = (req, res) => {
 		return res
 			.status(400)
 			.json({ error: "`lastName` is required (non-empty string)" })
-	if (!allowedRoles.includes(role as UserRole))
+	if (!isValidPassword(password))
 		return res
 			.status(400)
-			.json({ error: "`role` must be one of: admin | collaborator | guest" })
+			.json({ error: "`password` must be at least 8 characters" })
 
 	if (userService.emailInUse(email))
 		return res.status(409).json({ error: "Email already in use" })
@@ -55,16 +82,23 @@ const create: RequestHandler<{}, any, CreateUserBody> = (req, res) => {
 		return res.status(409).json({ error: "userName already in use" })
 
 	try {
-		const user = userService.create({
+		const hashedPassword = await userService.hashPassword(password)
+		const user = await userService.create({
 			userName,
 			email,
 			firstName,
 			lastName,
-			password,
-			role: role as UserRole,
+			password: hashedPassword,
+			role: userRole,
 		})
-		logger.debug({ userId: user.id }, "User created")
-		return res.status(201).json(user)
+
+		const response: CreateUserResponseDTO = {
+			user: toUserResponseDTO(user),
+			message: "User created successfully",
+		}
+
+		logger.debug({ user: response.user }, "User created")
+		return res.status(201).json(response)
 	} catch (e: any) {
 		if (e?.message === "UNIQUE_VIOLATION")
 			return res.status(409).json({ error: "Email or userName already in use" })
@@ -77,11 +111,24 @@ const create: RequestHandler<{}, any, CreateUserBody> = (req, res) => {
 	}
 }
 
-const update: RequestHandler<{ id: string }, any, UpdateUserBody> = (
+const update: RequestHandler<{ id: string }, any, UpdateUserBody> = async (
 	req,
 	res
 ) => {
-	const { email, userName, firstName, lastName, role } = req.body || {}
+	const { email, userName, firstName, lastName, role, password } =
+		req.body || {}
+
+	// Validate and set the role if provided
+	let userRole: UserRole | undefined
+	if (role) {
+		if (allowedRoles.includes(role as UserRole)) {
+			userRole = role as UserRole
+		} else {
+			return res.status(400).json({
+				error: "`role` must be one of: admin | collaborator | guest",
+			})
+		}
+	}
 
 	if (email !== undefined && !isEmail(email))
 		return res.status(400).json({ error: "`email` is invalid" })
@@ -97,10 +144,10 @@ const update: RequestHandler<{ id: string }, any, UpdateUserBody> = (
 		return res
 			.status(400)
 			.json({ error: "`lastName` must be a non-empty string" })
-	if (role !== undefined && !allowedRoles.includes(role as UserRole))
+	if (password !== undefined && !isValidPassword(password))
 		return res
 			.status(400)
-			.json({ error: "`role` must be one of: admin | collaborator | guest" })
+			.json({ error: "`password` must be at least 8 characters" })
 
 	if (email && userService.emailInUse(email, req.params.id))
 		return res.status(409).json({ error: "Email already in use" })
@@ -108,15 +155,23 @@ const update: RequestHandler<{ id: string }, any, UpdateUserBody> = (
 		return res.status(409).json({ error: "userName already in use" })
 
 	try {
-		const updated = userService.update(req.params.id, {
+		let updateData: any = {
 			email,
 			userName,
 			firstName,
 			lastName,
-			role: role as UserRole | undefined,
-		})
+			role: userRole,
+		}
+
+		if (password) {
+			updateData.password = await userService.hashPassword(password)
+		}
+
+		const updated = userService.update(req.params.id, updateData)
 		if (!updated) return res.status(404).json({ error: "User not found" })
-		return res.json(updated)
+
+		const response: UserResponseDTO = toUserResponseDTO(updated)
+		return res.json(response)
 	} catch (e: any) {
 		if (e?.message === "UNIQUE_VIOLATION")
 			return res.status(409).json({ error: "Email or userName already in use" })
@@ -134,8 +189,5 @@ const remove: RequestHandler<{ id: string }> = (req, res) => {
 	return res.status(204).send()
 }
 
-/* named exports (optional) */
 export { list, getById, create, update, remove }
-
-/* default export so your current import works */
 export default { list, getById, create, update, remove }
