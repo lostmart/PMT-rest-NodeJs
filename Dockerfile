@@ -1,37 +1,39 @@
-# ---------------------------
-# Stage 1: Build
-# ---------------------------
+# ---------- Stage 1: Build (compile TS and native modules) ----------
 FROM node:20-alpine AS builder
-
-# Create app directory
 WORKDIR /app
 
-# Install deps (with package-lock.json if present for reproducibility)
+# Install prod deps (native addon will compile here)
 COPY package*.json tsconfig.json ./
-RUN npm ci
+RUN apk add --no-cache python3 make g++ \
+ && npm ci --omit=dev
 
-# Copy source
+# Build TS -> dist
 COPY src ./src
-
-# Build TypeScript -> dist
 RUN npm run build
 
-# ---------------------------
-# Stage 2: Production runtime
-# ---------------------------
+# ---------- Stage 2: Runtime (small, no build tools) ----------
 FROM node:20-alpine AS runner
-
 WORKDIR /app
 
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/dist ./dist
-
-# Ensure prod mode so logger won't try to load pino-pretty
+# Prod mode so logger won't try to load pino-pretty
 ENV NODE_ENV=production
 
-# Install only prod deps
-RUN npm ci --omit=dev
+# Non-root user
+RUN addgroup -S app && adduser -S app -G app
+
+# Bring in only what's needed
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+
+# Data dir for SQLite (persist this with a volume)
+RUN mkdir -p /app/data && chown -R app:app /app
+USER app
 
 EXPOSE 3000
-CMD ["node", "dist/index.js"]
 
+# Basic healthcheck (busybox wget available on alpine)
+HEALTHCHECK --interval=10s --timeout=3s --retries=3 \
+  CMD wget -qO- http://localhost:3000/api/health || exit 1
+
+CMD ["node", "dist/index.js"]
