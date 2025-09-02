@@ -12,6 +12,11 @@ app.use(express.json())
 // Routes under /api prefix
 app.use("/api", routes)
 
+// welcome message
+app.get("/", (req: Request, res: Response) => {
+	res.json({ msg: "Welcome to the PMT API" })
+})
+
 // Centralized error handler
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
 	logger.error(err)
