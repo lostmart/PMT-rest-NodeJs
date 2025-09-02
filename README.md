@@ -50,7 +50,7 @@ docker build -t pm-backend .
 docker run -p 3000:3000 pm-backend
 ```
 
-[![Docker CI](https://github.com/lostmart/rest-api-nodeJs/actions/workflows/docker-ci.yml/badge.svg)](https://github.com/lostmart/rest-api-nodeJs/actions/workflows/docker-ci.yml)
+[![Docker CI](https://github.com/lostmart/PMT-rest-NodeJs/actions/workflows/docker-ci.yml/badge.svg)](https://github.com/lostmart/rest-api-nodeJs/actions/workflows/docker-ci.yml)
 
 API available at:
 👉 http://localhost:3000/api/health
