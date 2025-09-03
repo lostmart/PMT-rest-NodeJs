@@ -1,5 +1,5 @@
 // scripts/seed.ts
-import db from "../src/db"
-import { seedFixedUsers } from "../src/db/seed"
+import db from "../db"
+import { seedFixedUsers } from "../db/seed"
 
 seedFixedUsers(db())
