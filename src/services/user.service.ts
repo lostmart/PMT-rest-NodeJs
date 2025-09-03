@@ -2,7 +2,6 @@ import { randomUUID } from "node:crypto"
 import { db } from "../db/sqlite"
 import { CreateUserBody, UpdateUserBody, User, UserRole } from "../models/user"
 import bcrypt from "bcrypt"
-import { logger } from "../utils/logger"
 
 const SALT_ROUNDS = 12
 
@@ -24,7 +23,7 @@ const selectByEmailEx = db.prepare(
 )
 const selectAuthByEmail = db.prepare(
 	"SELECT id, email, password, userName, firstName, lastName, role, createdAt, updatedAt \
-   FROM users WHERE lower(email)=lower(?) LIMIT 1"
+	   FROM users WHERE lower(email)=lower(?) LIMIT 1"
 )
 const selectByUserEx = db.prepare(
 	"SELECT id FROM users WHERE lower(userName)=lower(?) AND id != ? LIMIT 1"
@@ -38,33 +37,21 @@ const updateUser = db.prepare(
 )
 const deleteUser = db.prepare("DELETE FROM users WHERE id = ?")
 
-const DUMMY_HASH =
-	"$2b$12$KIX0xXQG3lGqR8mFf1cQ7eXn3N.zjst7rU5k7C6kqz6W0v0bMwFAS"
+export type AuthResponse = {
+	authenticated: boolean
+	user?: User
+}
 
 export const userService = {
 	async hashPassword(password: string): Promise<string> {
 		return bcrypt.hash(password, SALT_ROUNDS)
 	},
 
-	async comparePassword(
-		password: string,
-		hashedPassword: string
-	): Promise<boolean> {
-		return bcrypt.compare(password, hashedPassword)
-	},
-
-	async authenticate(email: string, candidate: unknown) {
-		const row = selectAuthByEmail.get(email) as
-			| { id: string; password: string }
-			| undefined
-
-		if (typeof candidate !== "string") return false
-
-		// Always compare to avoid user-enumeration timing leaks
-		const hash = typeof row?.password === "string" ? row.password : DUMMY_HASH
-		const ok = await bcrypt.compare(candidate, hash)
-
-		return ok && !!row?.id ? { id: row.id } : false
+	async authenticate(email: string, password: string): Promise<AuthResponse> {
+		const user = selectAuthByEmail.get(email) as User
+		if (!user) return { authenticated: false }
+		const authenticated = await bcrypt.compare(password, user.password)
+		return { authenticated, user }
 	},
 
 	list(): User[] {

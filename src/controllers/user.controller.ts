@@ -1,8 +1,12 @@
-// controllers/user.controller.ts
 import { RequestHandler } from "express"
 import { userService } from "../services/user.service"
 import { logger } from "../utils/logger"
 import { CreateUserBody, UpdateUserBody, UserRole, User } from "../models/user"
+import jwt from "jsonwebtoken"
+
+import dotenv from "dotenv"
+dotenv.config()
+
 import {
 	UserResponseDTO,
 	CreateUserResponseDTO,
@@ -18,6 +22,12 @@ const allowedRoles: readonly UserRole[] = [
 	"collaborator",
 	"guest",
 ] as const
+
+type AccessTokenPayload = jwt.JwtPayload & {
+	sub: string // user id
+	email: string
+	roles?: string[]
+}
 
 const isEmail = (e: unknown): e is string =>
 	typeof e === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)
@@ -120,12 +130,36 @@ const login: RequestHandler<
 	{ email: string; password: string }
 > = async (req, res) => {
 	const { email, password } = req.body
+	const JWT_SECRET = process.env.JWT_SECRET
+
 	if (!email || !password)
 		return res.status(400).json({ error: "Email and password are required" })
-	const user = await userService.authenticate(email, password)
-	if (!user) return res.status(401).json({ error: "Invalid credentials" })
 
-	return res.status(200).json({ msg: "Login successful" })
+	const authUserRes = await userService.authenticate(email, password)
+
+	logger.debug({ email, authUserRes })
+
+	if (!authUserRes.authenticated) {
+		return res.status(401).json({ error: "Invalid email or password" })
+	}
+	if (!JWT_SECRET) {
+		throw new Error("Missing JWT_SECRET")
+	}
+
+	const payload: AccessTokenPayload = {
+		sub: String(authUserRes.user?.id), // must be a stable unique id
+		email: String(authUserRes.user?.email),
+		role: String(authUserRes.user?.role),
+	}
+
+	const accessToken = jwt.sign(payload, JWT_SECRET, {
+		issuer: process.env.JWT_ISS,
+		audience: process.env.JWT_AUD,
+		algorithm: "HS256", // consider RS256/EdDSA for key rotation via JWKS
+		expiresIn: "15m",
+	})
+
+	return res.status(200).json(accessToken)
 }
 
 const update: RequestHandler<{ id: string }, any, UpdateUserBody> = async (

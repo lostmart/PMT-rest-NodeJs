@@ -23,7 +23,7 @@ export function seedFixedUsers(db: Database.Database) {
 			password: bcrypt.hashSync("admin123@@", 10), // Hashed  pswd
 			userName: "admin",
 			firstName: "Alice",
-			lastName: "Admin",
+			lastName: "Adminikhan",
 			role: "admin",
 			createdAt: now,
 			updatedAt: now,
