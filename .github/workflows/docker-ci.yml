@@ -6,7 +6,6 @@ on:
   pull_request:
     branches: ["**"]
 
-# Prevent overlapping runs on the same branch/PR
 concurrency:
   group: docker-ci-${{ github.ref }}
   cancel-in-progress: true
@@ -19,7 +18,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ---- Fast feedback: TS typecheck (optional but recommended)
       - name: Use Node 20.x
         uses: actions/setup-node@v4
         with:
@@ -32,7 +30,7 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      # ---- Docker build (no push; cache via GitHub Actions cache)
+      # ---- Docker build
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -44,26 +42,25 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          push: false # build only (no registry push)
-          load: true # load into local Docker to run tests
+          push: false
+          load: true
           tags: pm-backend:ci-${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # ---- Smoke test: run container and hit /api/health
+      # ---- Start and check container
       - name: Run container
         run: |
           docker run -d --rm -p 3000:3000 --name pm-backend pm-backend:ci-${{ github.sha }}
-          # simple wait loop for server to boot
           for i in {1..20}; do
             if curl -sSf http://localhost:3000/api/health > /dev/null; then
-              echo "Service is up."
+              echo "✅ Service is up."
               exit 0
             fi
-            echo "Waiting for service..."
+            echo "⏳ Waiting for service..."
             sleep 1
           done
-          echo "Service did not start in time."
+          echo "❌ Service did not start in time."
           docker logs pm-backend || true
           exit 1
 
@@ -72,6 +69,22 @@ jobs:
           curl -sS http://localhost:3000/api/health | tee /tmp/health.json
           jq -e '.ok == true' /tmp/health.json
 
+      # ✅ New: Run seed script after container is ready
+      - name: Seed database with fixed users
+        run: |
+          echo "⏳ Waiting 2 seconds before seeding..."
+          sleep 2
+          docker exec pm-backend npx ts-node scripts/seed.ts
+
+      # 🧪 Optional: Check if users were created (uncomment to use)
+      # - name: Verify seeded users
+      #   run: |
+      #     docker exec pm-backend sqlite3 /app/data/db.sqlite 'SELECT email, role FROM users;'
+
       - name: Show recent logs (on failure)
         if: failure()
         run: docker logs pm-backend || true
+
+      - name: Show recent logs (on success)
+        if: success()
+        run: docker logs pm-backend
