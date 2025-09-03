@@ -65,12 +65,13 @@ Future versions will add **SQLite** for data persistence.
 
 ## 🛠️ Scripts
 
-| Command             | Description                           |
-| ------------------- | ------------------------------------- |
-| `npm run dev`       | Start in dev mode (nodemon + ts-node) |
-| `npm run build`     | Compile TypeScript → `dist/`          |
-| `npm start`         | Run compiled JavaScript               |
-| `npm run typecheck` | Type-check without emitting JS        |
+| Command                       | Description                           |
+| ----------------------------- | ------------------------------------- |
+| `npm run dev`                 | Start in dev mode (nodemon + ts-node) |
+| `npm run build`               | Compile TypeScript → `dist/`          |
+| `npm start`                   | Run compiled JavaScript               |
+| `npm run typecheck`           | Type-check without emitting JS        |
+| `npx ts-node scripts/seed.ts` | Seeds two users into the db           |
 
 ## 🐳 Docker
 
@@ -92,6 +93,43 @@ API available at:
 - Add SQLite persistence
 - Implement Projects, Tasks, Users endpoints
 - Authentication & authorization
+
+## 🌱 Seeding Users
+
+To seed the database with initial users, run:
+
+```bash
+npx ts-node scripts/seed.ts
+```
+
+This will insert two users into the SQLite database:
+
+```ts
+const users = [
+	{
+		id: randomUUID(),
+		email: "admin@example.com",
+		password: "admin123", // hased
+		userName: "admin",
+		firstName: "Alice",
+		lastName: "Admin",
+		role: "admin",
+		createdAt: now,
+		updatedAt: now,
+	},
+	{
+		id: randomUUID(),
+		email: "guest@example.com",
+		password: "guest123", // hased
+		userName: "guest",
+		firstName: "Gary",
+		lastName: "Guest",
+		role: "guest",
+		createdAt: now,
+		updatedAt: now,
+	},
+]
+```
 
 ## 📜 License
 
