@@ -1,6 +1,8 @@
 import { randomUUID } from "crypto"
 import Database from "better-sqlite3"
 
+import bcrypt from "bcrypt"
+
 export function seedFixedUsers(db: Database.Database) {
 	const now = new Date().toISOString()
 
@@ -18,7 +20,7 @@ export function seedFixedUsers(db: Database.Database) {
 		{
 			id: randomUUID(),
 			email: "admin@example.com",
-			password: "admin123", // Hash in real apps
+			password: bcrypt.hashSync("admin123@@", 10), // Hashed  pswd
 			userName: "admin",
 			firstName: "Alice",
 			lastName: "Admin",
@@ -29,7 +31,7 @@ export function seedFixedUsers(db: Database.Database) {
 		{
 			id: randomUUID(),
 			email: "guest@example.com",
-			password: "guest123",
+			password: bcrypt.hashSync("guest123@@", 10), // Hashed  pswd
 			userName: "guest",
 			firstName: "Gary",
 			lastName: "Guest",
