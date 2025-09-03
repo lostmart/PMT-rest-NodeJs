@@ -74,7 +74,7 @@ jobs:
         run: |
           echo "⏳ Waiting 2 seconds before seeding..."
           sleep 2
-          docker exec pm-backend npx ts-node ../scripts/seed.ts
+          docker exec pm-backend npx ts-node scripts/seed.ts
 
       # 🧪 Optional: Check if users were created (uncomment to use)
       # - name: Verify seeded users
