@@ -14,24 +14,24 @@ export const db = new Database(dbPath, { fileMustExist: false })
 db.pragma("journal_mode = WAL")
 db.pragma("foreign_keys = ON")
 
-export function migrate(): void {
-	db.exec(`
-    CREATE TABLE IF NOT EXISTS users (
-      id         TEXT PRIMARY KEY,
-      email      TEXT NOT NULL UNIQUE,
-      userName   TEXT NOT NULL UNIQUE,
-      firstName  TEXT NOT NULL,
-      password  TEXT NOT NULL,
-      lastName   TEXT NOT NULL,
-      role       TEXT NOT NULL,
-      createdAt  TEXT NOT NULL,
-      updatedAt  TEXT NOT NULL
-    );
+// export function migrate(): void {
+// 	db.exec(`
+//     CREATE TABLE IF NOT EXISTS users (
+//       id         TEXT PRIMARY KEY,
+//       email      TEXT NOT NULL UNIQUE,
+//       userName   TEXT NOT NULL UNIQUE,
+//       firstName  TEXT NOT NULL,
+//       password   TEXT NOT NULL,
+//       lastName   TEXT NOT NULL,
+//       role       TEXT NOT NULL,
+//       createdAt  TEXT NOT NULL,
+//       updatedAt  TEXT NOT NULL
+//     );
 
-    CREATE INDEX IF NOT EXISTS idx_users_email     ON users(email);
-    CREATE INDEX IF NOT EXISTS idx_users_userName  ON users(userName);
-    CREATE INDEX IF NOT EXISTS idx_users_role      ON users(role);
-  `)
-}
+//     CREATE INDEX IF NOT EXISTS idx_users_email     ON users(email);
+//     CREATE INDEX IF NOT EXISTS idx_users_userName  ON users(userName);
+//     CREATE INDEX IF NOT EXISTS idx_users_role      ON users(role);
+//   `)
+// }
 
-migrate()
+// migrate()
