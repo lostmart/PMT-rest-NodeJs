@@ -51,8 +51,8 @@ jobs:
       # ---- Start and check container
       - name: Run container
         run: |
-          docker run -d --rm -p 3000:3000 --name pm-backend pm-backend:ci-${{ github.sha }}
-          for i in {1..20}; do
+          docker run -d -p 3000:3000 --name pm-backend pm-backend:ci-${{ github.sha }}
+          for i in {1..30}; do
             if curl -sSf http://localhost:3000/api/health > /dev/null; then
               echo "✅ Service is up."
               exit 0
@@ -61,6 +61,8 @@ jobs:
             sleep 1
           done
           echo "❌ Service did not start in time."
+          docker ps -a || true
+          docker inspect pm-backend --format='State: {{.State.Status}}  ExitCode: {{.State.ExitCode}}' || true
           docker logs pm-backend || true
           exit 1
 
