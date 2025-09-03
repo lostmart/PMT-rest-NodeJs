@@ -102,6 +102,8 @@ To seed the database with initial users, run:
 npx ts-node scripts/seed.ts
 ```
 
+**NOTE:** This ode will automattically run itself if the user's tabe is empty !
+
 This will insert two users into the SQLite database:
 
 ```ts
