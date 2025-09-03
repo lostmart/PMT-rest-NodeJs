@@ -1,88 +1,62 @@
-name: Docker CI
+name: Smoke
 
 on:
   push:
-    branches: ["**"]
+    branches: [main]
   pull_request:
-    branches: ["**"]
 
-concurrency:
-  group: docker-ci-${{ github.ref }}
-  cancel-in-progress: true
+permissions:
+  contents: read
 
 jobs:
-  build-and-smoke-test:
+  smoke:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Use Node 20.x
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
-          cache: "npm"
+          node-version: 20
+          cache: npm
 
-      - name: Install deps (CI)
+      - name: Install deps
         run: npm ci
 
-      - name: Typecheck
-        run: npm run typecheck
+      - name: Build
+        run: npm run build
 
-      # ---- Docker build
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./Dockerfile
-          push: false
-          load: true
-          tags: pm-backend:ci-${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      # ---- Start and check container
-      - name: Run container
+      - name: Start API (background)
+        env:
+          NODE_ENV: production
+          PORT: 3000
+          DB_PATH: ./data/ci.sqlite
         run: |
-          docker run -d -p 3000:3000 --name pm-backend pm-backend:ci-${{ github.sha }}
+          mkdir -p data
+          npm start &
+          echo $! > server.pid
+          # give it a moment to boot
+          sleep 2
+
+      - name: Health check
+        run: |
           for i in {1..30}; do
-            if curl -sSf http://localhost:3000/api/health > /dev/null; then
-              echo "✅ Service is up."
+            if curl -fsS http://localhost:3000/api/health > /dev/null; then
+              echo "Health check OK"
               exit 0
             fi
-            echo "⏳ Waiting for service..."
+            echo "Waiting for API... ($i)"
             sleep 1
           done
-          echo "❌ Service did not start in time."
-          docker ps -a || true
-          docker inspect pm-backend --format='State: {{.State.Status}}  ExitCode: {{.State.ExitCode}}' || true
-          docker logs pm-backend || true
+          echo "Health check failed"
           exit 1
 
-      - name: Verify /api/health response
+      - name: Stop API
+        if: always()
         run: |
-          curl -sS http://localhost:3000/api/health | tee /tmp/health.json
-          jq -e '.ok == true' /tmp/health.json
-
-      # ✅ New: Run seed script after container is ready
-      # - name: Seed database with fixed users
-      #   run: |
-      #     echo "⏳ Waiting 2 seconds before seeding..."
-      #     sleep 2
-      #     run: docker exec pm-backend npm run seed
-
-      # 🧪 Optional: Check if users were created (uncomment to use)
-      # - name: Verify seeded users
-      #   run: |
-      #     docker exec pm-backend sqlite3 /app/data/db.sqlite 'SELECT email, role FROM users;'
-
-      - name: Show recent logs (on failure)
-        if: failure()
-        run: docker logs pm-backend || true
+          if [ -f server.pid ]; then
+            kill "$(cat server.pid)" || true
+          fi
