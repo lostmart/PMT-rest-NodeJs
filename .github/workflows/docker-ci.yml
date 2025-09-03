@@ -70,11 +70,11 @@ jobs:
           jq -e '.ok == true' /tmp/health.json
 
       # ✅ New: Run seed script after container is ready
-      - name: Seed database with fixed users
-        run: |
-          echo "⏳ Waiting 2 seconds before seeding..."
-          sleep 2
-          docker exec pm-backend npx ts-node scripts/seed.ts
+      # - name: Seed database with fixed users
+      #   run: |
+      #     echo "⏳ Waiting 2 seconds before seeding..."
+      #     sleep 2
+      #     docker exec pm-backend npx ts-node scripts/seed.ts
 
       # 🧪 Optional: Check if users were created (uncomment to use)
       # - name: Verify seeded users
