@@ -84,7 +84,3 @@ jobs:
       - name: Show recent logs (on failure)
         if: failure()
         run: docker logs pm-backend || true
-
-      - name: Show recent logs (on success)
-        if: success()
-        run: docker logs pm-backend

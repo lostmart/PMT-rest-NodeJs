@@ -10,6 +10,9 @@ dotenv.config()
 import initializeDB from "./db"
 const db = initializeDB()
 
+import { seedFixedUsers } from "./db/seed"
+seedFixedUsers(db)
+
 const PORT = Number(process.env.PORT) || 3000
 
 app.listen(PORT, () => {
