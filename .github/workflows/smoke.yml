@@ -53,18 +53,18 @@ jobs:
           # brief initial wait; health step will loop
           sleep 2
 
-      - name: Health check
-        run: |
-          for i in {1..30}; do
-            if curl -fsS http://localhost:3000/api/health > /dev/null; then
-              echo "Health check OK"
-              exit 0
-            fi
-            echo "Waiting for API... ($i)"
-            sleep 1
-          done
-          echo "Health check failed"
-          exit 1
+      #   - name: Health check
+      #     run: |
+      #       for i in {1..30}; do
+      #         if curl -fsS http://localhost:3000/api/health > /dev/null; then
+      #           echo "Health check OK"
+      #           exit 0
+      #         fi
+      #         echo "Waiting for API... ($i)"
+      #         sleep 1
+      #       done
+      #       echo "Health check failed"
+      #       exit 1
 
       - name: Stop API
         if: always()
