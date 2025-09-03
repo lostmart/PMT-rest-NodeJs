@@ -8,7 +8,10 @@ import {
 	CreateUserResponseDTO,
 	UsersListResponseDTO,
 } from "../models/user.dto"
-import { toUserResponseDTO, toUsersListResponseDTO } from "../utils/user.mappers"
+import {
+	toUserResponseDTO,
+	toUsersListResponseDTO,
+} from "../utils/user.mappers"
 
 const allowedRoles: readonly UserRole[] = [
 	"admin",
@@ -111,6 +114,20 @@ const create: RequestHandler<{}, any, CreateUserBody> = async (req, res) => {
 	}
 }
 
+const login: RequestHandler<
+	{},
+	any,
+	{ email: string; password: string }
+> = async (req, res) => {
+	const { email, password } = req.body
+	if (!email || !password)
+		return res.status(400).json({ error: "Email and password are required" })
+	const user = await userService.authenticate(email, password)
+	if (!user) return res.status(401).json({ error: "Invalid credentials" })
+
+	return res.status(200).json({ msg: "Login successful" })
+}
+
 const update: RequestHandler<{ id: string }, any, UpdateUserBody> = async (
 	req,
 	res
@@ -190,4 +207,4 @@ const remove: RequestHandler<{ id: string }> = (req, res) => {
 }
 
 export { list, getById, create, update, remove }
-export default { list, getById, create, update, remove }
+export default { list, getById, create, update, remove, login }

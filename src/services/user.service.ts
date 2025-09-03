@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto"
 import { db } from "../db/sqlite"
 import { CreateUserBody, UpdateUserBody, User, UserRole } from "../models/user"
 import bcrypt from "bcrypt"
+import { logger } from "../utils/logger"
 
 const SALT_ROUNDS = 12
 
@@ -21,17 +22,24 @@ const selectByUserName = db.prepare(
 const selectByEmailEx = db.prepare(
 	"SELECT id FROM users WHERE lower(email)=lower(?) AND id != ? LIMIT 1"
 )
+const selectAuthByEmail = db.prepare(
+	"SELECT id, email, password, userName, firstName, lastName, role, createdAt, updatedAt \
+   FROM users WHERE lower(email)=lower(?) LIMIT 1"
+)
 const selectByUserEx = db.prepare(
 	"SELECT id FROM users WHERE lower(userName)=lower(?) AND id != ? LIMIT 1"
 )
 
 const insertUser = db.prepare(
-	"INSERT INTO users (id,email,password,userName,firstName,lastName,role,createdAt,updatedAt) VALUES (?,?,?,?,?,?,?,?,?)"
+	"INSERT INTO users (id,email,userName,firstName,lastName,role,createdAt,updatedAt,password) VALUES (?,?,?,?,?,?,?,?,?)"
 )
 const updateUser = db.prepare(
 	"UPDATE users SET email=?, userName=?, firstName=?, lastName=?, role=?, updatedAt=? WHERE id=?"
 )
 const deleteUser = db.prepare("DELETE FROM users WHERE id = ?")
+
+const DUMMY_HASH =
+	"$2b$12$KIX0xXQG3lGqR8mFf1cQ7eXn3N.zjst7rU5k7C6kqz6W0v0bMwFAS"
 
 export const userService = {
 	async hashPassword(password: string): Promise<string> {
@@ -45,12 +53,18 @@ export const userService = {
 		return bcrypt.compare(password, hashedPassword)
 	},
 
-	// If you have authentication methods, use comparePassword
-	async authenticate(email: string, password: string) {
-		const user = selectByEmail.get(email) as User
-		if (!user) return false
+	async authenticate(email: string, candidate: unknown) {
+		const row = selectAuthByEmail.get(email) as
+			| { id: string; password: string }
+			| undefined
 
-		return this.comparePassword(password, user?.password)
+		if (typeof candidate !== "string") return false
+
+		// Always compare to avoid user-enumeration timing leaks
+		const hash = typeof row?.password === "string" ? row.password : DUMMY_HASH
+		const ok = await bcrypt.compare(candidate, hash)
+
+		return ok && !!row?.id ? { id: row.id } : false
 	},
 
 	list(): User[] {

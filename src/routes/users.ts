@@ -5,7 +5,10 @@ const router = Router()
 
 router.get("/", userController.list)
 router.get("/:id", userController.getById)
-router.post("/", userController.create)
+
+router.post("/register", userController.create)
+router.post("/login", userController.login)
+
 router.patch("/:id", userController.update)
 router.delete("/:id", userController.remove)
 
