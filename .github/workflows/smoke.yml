@@ -8,6 +8,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: smoke-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   smoke:
     runs-on: ubuntu-latest
@@ -22,12 +26,21 @@ jobs:
         with:
           node-version: 20
           cache: npm
+          cache-dependency-path: package-lock.json
 
       - name: Install deps
         run: npm ci
 
       - name: Build
         run: npm run build
+
+      # OPTIONAL: seed your SQLite DB if your app expects data
+      # - name: Seed DB
+      #   env:
+      #     DB_PATH: ./data/ci.sqlite
+      #   run: |
+      #     mkdir -p data
+      #     npm run seed
 
       - name: Start API (background)
         env:
@@ -36,9 +49,8 @@ jobs:
           DB_PATH: ./data/ci.sqlite
         run: |
           mkdir -p data
-          npm start &
-          echo $! > server.pid
-          # give it a moment to boot
+          node dist/index.js & echo $! > server.pid
+          # brief initial wait; health step will loop
           sleep 2
 
       - name: Health check
@@ -58,5 +70,6 @@ jobs:
         if: always()
         run: |
           if [ -f server.pid ]; then
-            kill "$(cat server.pid)" || true
+            # kill process group to ensure any children die too
+            kill -- -$(cat server.pid) 2>/dev/null || true
           fi
