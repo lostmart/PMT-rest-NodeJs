@@ -99,7 +99,7 @@ API available at:
 To seed the database with initial users, run:
 
 ```bash
-npx ts-node scripts/seed.ts
+npx ts-node src/scripts/seed.ts
 ```
 
 **NOTE:** This ode will automattically run itself if the user's tabe is empty !
