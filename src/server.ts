@@ -10,7 +10,7 @@ app.use(cors())
 app.use(express.json())
 
 // Routes under /api prefix
-// app.use("/api", routes)
+app.use("/api", routes)
 
 // welcome message
 app.get("/", (req: Request, res: Response) => {

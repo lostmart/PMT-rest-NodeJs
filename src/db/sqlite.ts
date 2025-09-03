@@ -1,6 +1,10 @@
 import Database from "better-sqlite3"
 import fs from "node:fs"
 import path from "node:path"
+import dotenv from "dotenv"
+
+// Load environment variables FIRST
+dotenv.config()
 
 const DEFAULT_DB_PATH = process.env.DB_PATH
 // const dbPath = path.resolve(DEFAULT_DB_PATH)
