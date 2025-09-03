@@ -2,7 +2,7 @@ import Database from "better-sqlite3"
 import fs from "node:fs"
 import path from "node:path"
 
-const DEFAULT_DB_PATH = process.env.DB_PATH || "data/app.db"
+const DEFAULT_DB_PATH = process.env.DB_PATH || "./data/dev.sqlite"
 const dbPath = path.resolve(DEFAULT_DB_PATH)
 
 // ensure /data exists
