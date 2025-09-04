@@ -5,8 +5,8 @@ import dotenv from "dotenv"
 dotenv.config()
 
 interface ProjectRequestBody {
-	name: string
-	description?: string
+	projectName: string
+	description: string
 	// other project properties
 }
 

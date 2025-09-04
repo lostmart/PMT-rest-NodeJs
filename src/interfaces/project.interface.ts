@@ -1,10 +1,10 @@
 export interface ProjectRequestBody {
-	name: string
+	projectName: string
 	description?: string
 	// other project properties
 }
 
 export interface CreateProjectRequest {
-	name: string
+	projectName: string
 	description: string
 }

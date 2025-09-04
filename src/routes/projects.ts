@@ -1,6 +1,7 @@
 import { Router } from "express"
 import projectController from "../controllers/project.controller"
 import { authMiddleware } from "../middleware/auth"
+import { projectValidation } from "../middleware/project.validation"
 
 const router = Router()
 
@@ -11,6 +12,6 @@ router.get("/", authMiddleware, projectController.list)
 router.get("/:id", authMiddleware, projectController.getProjectById)
 
 // CREATE a new project
-router.post("/", projectController.createProject)
+router.post("/", projectValidation, projectController.createProject)
 
 export default router
