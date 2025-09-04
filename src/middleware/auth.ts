@@ -3,6 +3,15 @@ import { NextFunction, Request, Response, RequestHandler } from "express"
 import { logger } from "../utils/logger"
 import { User } from "../models/user"
 
+interface JwtPayload {
+	id: string
+	email: string
+	role: string
+	iat?: number
+	exp?: number
+	// other JWT standard claims as needed
+}
+
 // Extend the Request interface to include user property
 declare global {
 	namespace Express {
@@ -28,7 +37,10 @@ export const authMiddleware: RequestHandler = (
 	}
 
 	try {
-		const decoded = jwt.verify(token, process.env.JWT_SECRET as string)
+		const decoded = jwt.verify(
+			token,
+			process.env.JWT_SECRET as string
+		) as JwtPayload
 
 		// Check if decoded is a valid JWT payload with required properties
 		if (typeof decoded === "string" || !decoded) {
@@ -38,7 +50,9 @@ export const authMiddleware: RequestHandler = (
 		// Type assertion to ensure we have the expected structure
 		const userPayload = decoded as { [key: string]: any }
 
-		if (!userPayload.id || !userPayload.email || !userPayload.role) {
+		logger.debug(userPayload)
+
+		if (!userPayload.role || !userPayload.email || !userPayload.id) {
 			return res.status(401).json({ error: "Unauthorized" })
 		}
 

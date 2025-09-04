@@ -24,7 +24,7 @@ const allowedRoles: readonly UserRole[] = [
 ] as const
 
 type AccessTokenPayload = jwt.JwtPayload & {
-	sub: string // user id
+	id: string // user id
 	email: string
 	roles?: string[]
 }
@@ -148,7 +148,7 @@ const login: RequestHandler<
 
 	try {
 		const payload: AccessTokenPayload = {
-			sub: String(authUserRes.user?.id), // must be a stable unique id
+			id: String(authUserRes.user?.id), // must be a stable unique id
 			email: String(authUserRes.user?.email),
 			role: String(authUserRes.user?.role),
 		}
