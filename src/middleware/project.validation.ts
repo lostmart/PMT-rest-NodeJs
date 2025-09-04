@@ -1,20 +1,29 @@
 import { NextFunction, Request, RequestHandler, Response } from "express"
-import { logger } from "../utils/logger"
-import { ProjectRequestBody } from "../interfaces/project.interface"
-// import { z } from "zod"
-// / todo add validation add valiudation with zod
+import {
+	ProjectRequestBody,
+	ProjectSchema,
+} from "../interfaces/project.interface"
 
 export const projectValidation: RequestHandler = (
-	req: Request<{}, ProjectRequestBody, ProjectRequestBody>,
+	req: Request<{}, any, any>,
 	res: Response,
 	next: NextFunction
 ) => {
-	logger.info(req.body, "projectValidation middleware")
+	const result = ProjectSchema.safeParse(req.body)
 
-	// check for empty
-	if (!req.body.projectName || req.body.projectName === "")
-		return res.status(400).json({ error: "Missing projectName" })
-	if (!req.body.description || req.body.description === "")
-		return res.status(400).json({ error: "Missing description" })
+	if (!result.success) {
+		return res.status(422).json({
+			error: "Invalid request body",
+			details: result.error.issues.map((i) => ({
+				path: i.path.join("."),
+				message: i.message,
+				code: i.code,
+			})),
+		})
+	}
+
+	// overwrite body with validated & typed data
+	req.body = result.data as ProjectRequestBody
+
 	return next()
 }
