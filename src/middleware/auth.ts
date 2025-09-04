@@ -50,8 +50,6 @@ export const authMiddleware: RequestHandler = (
 		// Type assertion to ensure we have the expected structure
 		const userPayload = decoded as { [key: string]: any }
 
-		logger.debug(userPayload)
-
 		if (!userPayload.role || !userPayload.email || !userPayload.id) {
 			return res.status(401).json({ error: "Unauthorized" })
 		}

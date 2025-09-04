@@ -1,7 +1,7 @@
 import { Router } from "express"
 import userController from "../controllers/user.controller"
 import { authMiddleware } from "../middleware/auth"
-import { logger } from "../utils/logger"
+
 
 const router = Router()
 

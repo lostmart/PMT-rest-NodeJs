@@ -1,7 +1,7 @@
 import { RequestHandler } from "express"
 import { userService } from "../services/user.service"
 import { logger } from "../utils/logger"
-import { CreateUserBody, UpdateUserBody, UserRole, User } from "../models/user"
+import { CreateUserBody, UpdateUserBody, UserRole } from "../models/user"
 import jwt from "jsonwebtoken"
 
 import dotenv from "dotenv"
@@ -56,8 +56,6 @@ const create: RequestHandler<{}, any, CreateUserBody> = async (req, res) => {
 	const { userName, email, firstName, lastName, password, role } =
 		req.body || ({} as CreateUserBody)
 
-	logger.debug({ userName, email, firstName, lastName, password, role })
-
 	// Validate and set the role
 	let userRole: UserRole
 	if (role && allowedRoles.includes(role as UserRole)) {
@@ -109,8 +107,6 @@ const create: RequestHandler<{}, any, CreateUserBody> = async (req, res) => {
 			user: toUserResponseDTO(user),
 			message: "User created successfully",
 		}
-
-		logger.debug({ user: response.user }, "User created")
 		return res.status(201).json(response)
 	} catch (e: any) {
 		if (e?.message === "UNIQUE_VIOLATION")
@@ -137,8 +133,6 @@ const login: RequestHandler<
 
 	const authUserRes = await userService.authenticate(email, password)
 
-	logger.debug({ email, authUserRes })
-
 	if (!authUserRes.authenticated) {
 		return res.status(401).json({ error: "Invalid email or password" })
 	}
@@ -157,7 +151,7 @@ const login: RequestHandler<
 			issuer: process.env.JWT_ISS,
 			audience: process.env.JWT_AUD,
 			algorithm: "HS256", // consider RS256/EdDSA for key rotation via JWKS
-			expiresIn: "15m",
+			expiresIn: "24h",
 		})
 		return res.status(200).json(accessToken)
 	} catch (error: Error | any) {
