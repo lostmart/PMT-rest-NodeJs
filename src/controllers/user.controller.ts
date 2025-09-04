@@ -146,20 +146,25 @@ const login: RequestHandler<
 		throw new Error("Missing JWT_SECRET")
 	}
 
-	const payload: AccessTokenPayload = {
-		sub: String(authUserRes.user?.id), // must be a stable unique id
-		email: String(authUserRes.user?.email),
-		role: String(authUserRes.user?.role),
+	try {
+		const payload: AccessTokenPayload = {
+			sub: String(authUserRes.user?.id), // must be a stable unique id
+			email: String(authUserRes.user?.email),
+			role: String(authUserRes.user?.role),
+		}
+
+		const accessToken = jwt.sign(payload, JWT_SECRET, {
+			issuer: process.env.JWT_ISS,
+			audience: process.env.JWT_AUD,
+			algorithm: "HS256", // consider RS256/EdDSA for key rotation via JWKS
+			expiresIn: "15m",
+		})
+		return res.status(200).json(accessToken)
+	} catch (error: Error | any) {
+		return res
+			.status(500)
+			.json({ error: error?.message, tip: "error trying to create token" })
 	}
-
-	const accessToken = jwt.sign(payload, JWT_SECRET, {
-		issuer: process.env.JWT_ISS,
-		audience: process.env.JWT_AUD,
-		algorithm: "HS256", // consider RS256/EdDSA for key rotation via JWKS
-		expiresIn: "15m",
-	})
-
-	return res.status(200).json(accessToken)
 }
 
 const update: RequestHandler<{ id: string }, any, UpdateUserBody> = async (
