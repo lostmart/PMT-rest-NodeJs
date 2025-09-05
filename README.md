@@ -39,13 +39,22 @@
 
 ### ⚙️ CI/CD
 
+### ⚙️ CI/CD
+
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
-![Node.js CI](https://img.shields.io/badge/node-20.x-green)
-![License: ISC](https://img.shields.io/badge/license-ISC-blue.svg)
+![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)
+![Render](https://img.shields.io/badge/Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)
+
+<!-- Live GitHub Actions Workflow Badges -->
+
+[![Build Status](https://github.com/lostmart/PMT-rest-NodeJs/actions/workflows/ci.yml/badge.svg)](https://github.com/lostmart/PMT-rest-NodeJs/actions/workflows/ci.yml)
+[![Tests](https://github.com/lostmart/PMT-rest-NodeJs/actions/workflows/tests.yml/badge.svg)](https://github.com/lostmart/PMT-rest-NodeJs/actions/workflows/tests.yml)
 
 This repository contains the **REST API** for the **Project Manager Tool**.  
 It is built with **Node.js**, **TypeScript**, and **Express**.  
 **SQLite** for data persistence.
+![Node.js CI](https://img.shields.io/badge/node-20.x-green)
+![License: ISC](https://img.shields.io/badge/license-ISC-blue.svg)
 
 ---
 
