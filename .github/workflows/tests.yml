@@ -1,0 +1,45 @@
+# .github/workflows/tests.yml
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Runs your tests if a "test" script exists; otherwise it no-ops
+      - name: Run tests (if present)
+        run: npm run -s test --if-present
+
+      # If your tests generate coverage to ./coverage, this will publish it as an artifact
+      - name: Upload coverage (if present)
+        if: hashFiles('coverage/**') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage
