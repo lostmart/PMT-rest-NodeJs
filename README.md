@@ -1,19 +1,51 @@
 # Project Manager Tool – Backend
 
+### 🚀 Core Stack
+
 ![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white)
 ![Express.js](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
-![Docker CI](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
-![Postman](https://img.shields.io/badge/Postman-FF6C37?style=for-the-badge&logo=postman&logoColor=white)
-![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
-![Swagger](https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)
 
+### 🗄️ Database
+
+![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
+![better-sqlite3](https://img.shields.io/badge/better--sqlite3-4479A1?style=for-the-badge&logo=sqlite&logoColor=white)
+
+### 🔐 Security & Auth
+
+![bcrypt](https://img.shields.io/badge/bcrypt-363636?style=for-the-badge&logo=keepassxc&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
+![CORS](https://img.shields.io/badge/CORS-005571?style=for-the-badge&logo=fastify&logoColor=white)
+
+### 🧰 Utilities & Validation
+
+![dotenv](https://img.shields.io/badge/dotenv-ECD53F?style=for-the-badge&logo=dotenv&logoColor=black)
+![zod](https://img.shields.io/badge/zod-3068B7?style=for-the-badge&logo=typescript&logoColor=white)
+
+### 📊 Logging
+
+![Pino](https://img.shields.io/badge/Pino-FF6600?style=for-the-badge&logo=logstash&logoColor=white)
+
+### 🛠️ Dev Tools
+
+![Nodemon](https://img.shields.io/badge/Nodemon-76D04B?style=for-the-badge&logo=nodemon&logoColor=black)
+![ts-node](https://img.shields.io/badge/ts--node-3178C6?style=for-the-badge&logo=ts-node&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?style=for-the-badge&logo=typescript&logoColor=white)
+
+### 📦 API & Docs
+
+![Swagger](https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)
+![Postman](https://img.shields.io/badge/Postman-FF6C37?style=for-the-badge&logo=postman&logoColor=white)
+
+### ⚙️ CI/CD
+
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![Node.js CI](https://img.shields.io/badge/node-20.x-green)
 ![License: ISC](https://img.shields.io/badge/license-ISC-blue.svg)
 
 This repository contains the **REST API** for the **Project Manager Tool**.  
 It is built with **Node.js**, **TypeScript**, and **Express**.  
-Future versions will add **SQLite** for data persistence.
+**SQLite** for data persistence.
 
 ---
 
