@@ -1,7 +1,6 @@
 import { db } from "../db/sqlite"
 import { Project } from "../models/project"
 import { randomUUID } from "crypto"
-import { logger } from "../utils/logger"
 
 export const projectService = {
 	list: (): Project[] => {
@@ -29,8 +28,6 @@ export const projectService = {
 			createdAt: now,
 			updatedAt: now,
 		}
-
-		logger.info(`Creating project ${newProject.projectName}`)
 
 		try {
 			stmt.run(

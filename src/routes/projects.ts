@@ -12,6 +12,6 @@ router.get("/", authMiddleware, projectController.list)
 router.get("/:id", authMiddleware, projectController.getProjectById)
 
 // CREATE a new project
-router.post("/", projectValidation, projectController.createProject)
+router.post("/", projectValidation, authMiddleware, projectController.createProject)
 
 export default router

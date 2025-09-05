@@ -8,3 +8,20 @@ export interface Project {
 	createdAt: string
 	updatedAt: string
 }
+
+export interface ProjectResponseDTO {
+	id: string
+	projectName: string
+	description: string
+	members?: string[]
+}
+
+export interface CreateProojectResponseDTO {
+	projects: ProjectResponseDTO
+	message?: string
+}
+
+export interface ProjectsListResponseDTO {
+	projects: ProjectResponseDTO[]
+	count: number
+}
