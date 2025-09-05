@@ -90,7 +90,7 @@ export const userService = {
 				user.updatedAt,
 				user.password
 			)
-			return user
+			return user as User // I added as user later !! ❗❌
 		} catch (e: any) {
 			if (e?.code === "SQLITE_CONSTRAINT_UNIQUE")
 				throw new Error("UNIQUE_VIOLATION")

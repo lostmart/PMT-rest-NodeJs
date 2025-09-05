@@ -1,12 +1,12 @@
 CREATE TABLE IF NOT EXISTS projects (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT NOT NULL,
+  projectName TEXT NOT NULL,
   description TEXT,
-  owner_id INTEGER,
+  ownerId INTEGER,
   manager TEXT,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE SET NULL
+  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (ownerId) REFERENCES users(id) ON DELETE SET NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_projects_owner_id ON projects(owner_id);
+CREATE INDEX IF NOT EXISTS idx_projects_ownerId ON projects(ownerId);
