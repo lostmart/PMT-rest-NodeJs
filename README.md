@@ -1,6 +1,6 @@
 # Project Manager Tool – Backend
 
-[![Docker CI](https://github.com/lostmart/PMT-rest-NodeJs/actions/workflows/docker-ci.yml/badge.svg)](https://github.com/lostmart/PMT-rest-NodeJs/actions/workflows/docker-ci.yml)
+![Docker CI](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![Node.js CI](https://img.shields.io/badge/node-20.x-green)
 ![License: ISC](https://img.shields.io/badge/license-ISC-blue.svg)
 
