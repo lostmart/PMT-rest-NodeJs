@@ -2,18 +2,8 @@ import { RequestHandler, Response, Request } from "express"
 import { projectService } from "../services/projects.service"
 
 import dotenv from "dotenv"
+import { CreateProjectRequest } from "../interfaces/project.interface"
 dotenv.config()
-
-interface ProjectRequestBody {
-	projectName: string
-	description: string
-	// other project properties
-}
-
-interface CreateProjectRequest {
-	name: string
-	description: string
-}
 
 /* ---------- handlers ---------- */
 
@@ -28,10 +18,11 @@ const getProjectById: RequestHandler<{ id: string }> = (req, res) => {
 }
 
 const createProject: RequestHandler = (
-	req: Request<{}, CreateProjectRequest, ProjectRequestBody>,
+	req: Request<{}, CreateProjectRequest, {}>,
 	res: Response
 ) => {
-	return res.json({ msg: req.body })
+	return res.status(201).json({ msg: req.body })
+	// to do ADD QUERY TO SQLite
 }
 
 export default { list, getProjectById, createProject }

@@ -133,6 +133,66 @@ const users = [
 ]
 ```
 
+## Request body validation
+
+We validate incoming HTTP bodies with Zod, using the schema as the single source of truth and deriving TypeScript types from it. This avoids duplicating interfaces and prevents type/validation drift.
+
+### Schema & Type
+
+```ts
+import { z } from "zod"
+
+/**
+ * Canonical request schema for creating a project.
+ * - trims strings before length checks
+ * - bounds lengths for predictable UX and storage
+ * - .strict() rejects unknown properties to surface client bugs early
+ */
+export const ProjectSchema = z
+	.object({
+		projectName: z.string().trim().min(3).max(50),
+		description: z.string().trim().min(3).max(100),
+	})
+	.strict()
+
+// Derived static type (no separate interface needed)
+export type ProjectRequestBody = z.infer<typeof ProjectSchema>
+```
+
+### Middleware
+
+```ts
+import { Request, Response, NextFunction, RequestHandler } from "express"
+import { ProjectSchema, ProjectRequestBody } from "./project.schema"
+
+/**
+ * Validates req.body against ProjectSchema.
+ * On success: replaces req.body with the parsed, trimmed, typed object.
+ * On failure: responds 422 with field-level details.
+ */
+export const projectValidation: RequestHandler = (
+	req: Request<{}, any, any>,
+	res: Response,
+	next: NextFunction
+) => {
+	const result = ProjectSchema.safeParse(req.body)
+
+	if (!result.success) {
+		return res.status(422).json({
+			error: "Invalid request body",
+			details: result.error.issues.map((i) => ({
+				path: i.path.join("."),
+				message: i.message,
+				code: i.code,
+			})),
+		})
+	}
+
+	req.body = result.data as ProjectRequestBody
+	return next()
+}
+```
+
 ## 📜 License
 
 This project is licensed under the ISC License.

@@ -1,7 +1,6 @@
 import { app } from "./server"
 import { logger } from "./utils/logger"
 
-
 import dotenv from "dotenv"
 
 // Load environment variables FIRST

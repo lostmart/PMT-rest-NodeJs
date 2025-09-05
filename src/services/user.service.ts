@@ -63,12 +63,6 @@ export const userService = {
 		return (row as User) ?? null
 	},
 
-	// Update your create method to hash password
-	// async create(userData: CreateUserBody): Promise<void> {
-	// const hashedPassword = await this.hashPassword(userData.password)
-	// ... rest of your create logic using hashedPassword
-	// },
-
 	async create(input: CreateUserBody): Promise<User> {
 		const now = new Date().toISOString()
 		const hashedPassword = await this.hashPassword(input.password)
