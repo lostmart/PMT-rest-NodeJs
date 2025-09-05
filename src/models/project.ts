@@ -16,7 +16,7 @@ export interface ProjectResponseDTO {
 	members?: string[]
 }
 
-export interface CreateProojectResponseDTO {
+export interface CreateProjectResponseDTO {
 	projects: ProjectResponseDTO
 	message?: string
 }

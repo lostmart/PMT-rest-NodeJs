@@ -1,8 +1,4 @@
-import {
-	CreateProojectResponseDTO,
-	Project,
-	ProjectsListResponseDTO,
-} from "../models/project"
+import { Project, ProjectsListResponseDTO } from "../models/project"
 import { ProjectResponseDTO } from "../models/project"
 
 export const toProjectDTO = (project: Project): ProjectResponseDTO => {

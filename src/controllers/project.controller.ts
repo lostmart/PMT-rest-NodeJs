@@ -4,7 +4,8 @@ import { CreateProjectRequest } from "../interfaces/project.interface"
 
 import dotenv from "dotenv"
 import { logger } from "../utils/logger"
-import { Project } from "../models/project"
+import { CreateProjectResponseDTO, Project } from "../models/project"
+import { toProjectDTO } from "../utils/project.mapper"
 dotenv.config()
 
 /* ---------- handlers ---------- */
@@ -38,9 +39,11 @@ const createProject: RequestHandler = async (
 			ownerId: userId,
 			manager: userId,
 		} as Project)
-		return res
-			.status(201)
-			.json({ message: "Project created successfully", project: newProject })
+		const response: CreateProjectResponseDTO = {
+			projects: toProjectDTO(newProject),
+			message: "User created successfully",
+		}
+		return res.status(201).json(response)
 	} catch (error: any) {
 		logger.error({ error, body: req.body }, "Failed to create project")
 
