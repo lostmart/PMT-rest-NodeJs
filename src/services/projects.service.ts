@@ -1,26 +1,24 @@
-import { RequestHandler } from "express"
 import { db } from "../db/sqlite"
 import { Project } from "../models/project"
 import { randomUUID } from "crypto"
 import { logger } from "../utils/logger"
 
-export const getAllProjects = db.prepare("SELECT * FROM projects")
-
-export const getProjectById = db.prepare("SELECT * FROM projects WHERE id = ?")
-
-export const createProject = db.prepare(
-	"INSERT INTO projects (name, ownerId, manager, description, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)"
-)
-
-/*  handlers   */
-
 export const projectService = {
-	list: (): Project[] => getAllProjects.all() as Project[],
+	list: (): Project[] => {
+		const stmt = db.prepare("SELECT * FROM projects")
+		return stmt.all() as Project[]
+	},
 
-	getById: (id: string): Project => getProjectById.get(id) as Project,
+	getById: (id: string): Project => {
+		const stmt = db.prepare("SELECT * FROM projects WHERE id = ?")
+		return stmt.get(id) as Project
+	},
 
 	createProject: async (project: Project) => {
 		const now = new Date().toISOString()
+		const stmt = db.prepare(
+			"INSERT INTO projects (projectName, ownerId, manager, description, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)"
+		)
 
 		const newProject: Project = {
 			id: randomUUID(),
@@ -30,12 +28,12 @@ export const projectService = {
 			description: project.description,
 			createdAt: now,
 			updatedAt: now,
-        }
-        
-        logger.info(`Creating project ${newProject.projectName}`)
+		}
+
+		logger.info(`Creating project ${newProject.projectName}`)
 
 		try {
-			createProject.run(
+			stmt.run(
 				newProject.projectName,
 				newProject.ownerId,
 				newProject.manager,
@@ -43,7 +41,7 @@ export const projectService = {
 				now,
 				now
 			)
-			return newProject as Project
+			return newProject
 		} catch (e: any) {
 			if (e?.code === "SQLITE_CONSTRAINT_UNIQUE")
 				throw new Error("UNIQUE_VIOLATION")

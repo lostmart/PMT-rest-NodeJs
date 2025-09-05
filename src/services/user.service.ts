@@ -5,38 +5,6 @@ import bcrypt from "bcrypt"
 
 const SALT_ROUNDS = 12
 
-// Prepared statements (no fancy generics; cast results when reading)
-const selectAll = db.prepare(
-	"SELECT id,email,userName,firstName,lastName,role,createdAt,updatedAt FROM users ORDER BY createdAt DESC"
-)
-const selectById = db.prepare(
-	"SELECT id,email,userName,firstName,lastName,role,createdAt,updatedAt FROM users WHERE id = ?"
-)
-const selectByEmail = db.prepare(
-	"SELECT id FROM users WHERE lower(email)=lower(?) LIMIT 1"
-)
-const selectByUserName = db.prepare(
-	"SELECT id FROM users WHERE lower(userName)=lower(?) LIMIT 1"
-)
-const selectByEmailEx = db.prepare(
-	"SELECT id FROM users WHERE lower(email)=lower(?) AND id != ? LIMIT 1"
-)
-const selectAuthByEmail = db.prepare(
-	"SELECT id, email, password, userName, firstName, lastName, role, createdAt, updatedAt \
-	   FROM users WHERE lower(email)=lower(?) LIMIT 1"
-)
-const selectByUserEx = db.prepare(
-	"SELECT id FROM users WHERE lower(userName)=lower(?) AND id != ? LIMIT 1"
-)
-
-const insertUser = db.prepare(
-	"INSERT INTO users (id,email,userName,firstName,lastName,role,createdAt,updatedAt,password) VALUES (?,?,?,?,?,?,?,?,?)"
-)
-const updateUser = db.prepare(
-	"UPDATE users SET email=?, userName=?, firstName=?, lastName=?, role=?, updatedAt=? WHERE id=?"
-)
-const deleteUser = db.prepare("DELETE FROM users WHERE id = ?")
-
 export type AuthResponse = {
 	authenticated: boolean
 	user?: User
@@ -48,6 +16,9 @@ export const userService = {
 	},
 
 	async authenticate(email: string, password: string): Promise<AuthResponse> {
+		const selectAuthByEmail = db.prepare(
+			"SELECT id, email, password, userName, firstName, lastName, role, createdAt, updatedAt FROM users WHERE lower(email)=lower(?) LIMIT 1"
+		)
 		const user = selectAuthByEmail.get(email) as User
 		if (!user) return { authenticated: false }
 		const authenticated = await bcrypt.compare(password, user.password)
@@ -55,10 +26,16 @@ export const userService = {
 	},
 
 	list(): User[] {
+		const selectAll = db.prepare(
+			"SELECT id,email,userName,firstName,lastName,role,createdAt,updatedAt FROM users ORDER BY createdAt DESC"
+		)
 		return selectAll.all() as User[]
 	},
 
 	get(id: string): User | null {
+		const selectById = db.prepare(
+			"SELECT id,email,userName,firstName,lastName,role,createdAt,updatedAt FROM users WHERE id = ?"
+		)
 		const row = selectById.get(id)
 		return (row as User) ?? null
 	},
@@ -73,10 +50,14 @@ export const userService = {
 			firstName: input.firstName.trim(),
 			lastName: input.lastName.trim(),
 			password: hashedPassword,
-			role: input.role, // controller should validate; DB CHECK enforces too
+			role: input.role,
 			createdAt: now,
 			updatedAt: now,
 		}
+
+		const insertUser = db.prepare(
+			"INSERT INTO users (id,email,userName,firstName,lastName,role,createdAt,updatedAt,password) VALUES (?,?,?,?,?,?,?,?,?)"
+		)
 
 		try {
 			insertUser.run(
@@ -90,7 +71,7 @@ export const userService = {
 				user.updatedAt,
 				user.password
 			)
-			return user as User // I added as user later !! ❗❌
+			return user
 		} catch (e: any) {
 			if (e?.code === "SQLITE_CONSTRAINT_UNIQUE")
 				throw new Error("UNIQUE_VIOLATION")
@@ -113,6 +94,10 @@ export const userService = {
 			updatedAt: new Date().toISOString(),
 		}
 
+		const updateUser = db.prepare(
+			"UPDATE users SET email=?, userName=?, firstName=?, lastName=?, role=?, updatedAt=? WHERE id=?"
+		)
+
 		try {
 			updateUser.run(
 				next.email,
@@ -133,18 +118,35 @@ export const userService = {
 	},
 
 	remove(id: string): boolean {
+		const deleteUser = db.prepare("DELETE FROM users WHERE id = ?")
 		return deleteUser.run(id).changes > 0
 	},
 
 	emailInUse(email: string, excludeId?: string): boolean {
-		return excludeId
-			? !!selectByEmailEx.get(email, excludeId)
-			: !!selectByEmail.get(email)
+		if (excludeId) {
+			const selectByEmailEx = db.prepare(
+				"SELECT id FROM users WHERE lower(email)=lower(?) AND id != ? LIMIT 1"
+			)
+			return !!selectByEmailEx.get(email, excludeId)
+		} else {
+			const selectByEmail = db.prepare(
+				"SELECT id FROM users WHERE lower(email)=lower(?) LIMIT 1"
+			)
+			return !!selectByEmail.get(email)
+		}
 	},
 
 	userNameInUse(userName: string, excludeId?: string): boolean {
-		return excludeId
-			? !!selectByUserEx.get(userName, excludeId)
-			: !!selectByUserName.get(userName)
+		if (excludeId) {
+			const selectByUserEx = db.prepare(
+				"SELECT id FROM users WHERE lower(userName)=lower(?) AND id != ? LIMIT 1"
+			)
+			return !!selectByUserEx.get(userName, excludeId)
+		} else {
+			const selectByUserName = db.prepare(
+				"SELECT id FROM users WHERE lower(userName)=lower(?) LIMIT 1"
+			)
+			return !!selectByUserName.get(userName)
+		}
 	},
 }
