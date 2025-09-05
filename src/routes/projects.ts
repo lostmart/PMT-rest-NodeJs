@@ -12,6 +12,22 @@ router.get("/", authMiddleware, projectController.list)
 router.get("/:id", authMiddleware, projectController.getProjectById)
 
 // CREATE a new project
-router.post("/", projectValidation, authMiddleware, projectController.createProject)
+router.post(
+	"/",
+	projectValidation,
+	authMiddleware,
+	projectController.createProject
+)
+
+// UPDATE a project based on its ID
+router.put(
+	"/:id",
+	projectValidation,
+	authMiddleware,
+	projectController.updateProject
+)
+
+// DELETE a project based on its ID
+router.delete("/:id", authMiddleware, projectController.deleteProject)
 
 export default router

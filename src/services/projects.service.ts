@@ -1,6 +1,5 @@
 import { db } from "../db/sqlite"
 import { Project } from "../models/project"
-import { randomUUID } from "crypto"
 
 export const projectService = {
 	list: (): Project[] => {
@@ -20,7 +19,7 @@ export const projectService = {
 		)
 
 		const newProject: Project = {
-			id: randomUUID(),
+			id: null,
 			projectName: project.projectName,
 			ownerId: project.ownerId,
 			manager: project.manager,
@@ -30,7 +29,7 @@ export const projectService = {
 		}
 
 		try {
-			stmt.run(
+			const result = await stmt.run(
 				newProject.projectName,
 				newProject.ownerId,
 				newProject.manager,
@@ -38,12 +37,45 @@ export const projectService = {
 				now,
 				now
 			)
+			// Get the auto-generated ID
+			const projectId = result.lastInsertRowid
+
+			newProject.id = projectId
+
 			return newProject
 		} catch (e: any) {
 			if (e?.code === "SQLITE_CONSTRAINT_UNIQUE")
 				throw new Error("UNIQUE_VIOLATION")
 			if (e?.code === "SQLITE_CONSTRAINT_CHECK") throw new Error("INVALID_ROLE")
 			throw e
+		}
+	},
+
+	updateProject: (id: string, project: Project) => {
+		try {
+			const stmt = db.prepare(
+				"UPDATE projects SET projectName = ?, manager = ?, description = ?, updatedAt = ? WHERE id = ?"
+			)
+			stmt.run(
+				project.projectName,
+				project.manager,
+				project.description,
+				new Date().toISOString(),
+				id
+			)
+			return true
+		} catch (error: any) {
+			throw error
+		}
+	},
+
+	deleteProject: (id: string) => {
+		try {
+			const stmt = db.prepare("DELETE FROM projects WHERE id = ?")
+			stmt.run(id)
+			return true
+		} catch (error: any) {
+			throw error(error.message)
 		}
 	},
 }

@@ -1,5 +1,5 @@
 export interface Project {
-	id: string
+	id?: any
 	projectName: string
 	ownerId: string
 	manager: string
@@ -7,10 +7,11 @@ export interface Project {
 	description: string
 	createdAt: string
 	updatedAt: string
+	remove?(key: string): any
 }
 
 export interface ProjectResponseDTO {
-	id: string
+	id?: number
 	projectName: string
 	description: string
 	members?: string[]

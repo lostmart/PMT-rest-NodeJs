@@ -5,7 +5,7 @@ import {
 } from "../interfaces/project.interface"
 
 export const projectValidation: RequestHandler = (
-	req: Request<{}, any, any>,
+	req,
 	res: Response,
 	next: NextFunction
 ) => {

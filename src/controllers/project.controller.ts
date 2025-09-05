@@ -6,6 +6,7 @@ import dotenv from "dotenv"
 import { logger } from "../utils/logger"
 import { CreateProjectResponseDTO, Project } from "../models/project"
 import { toProjectDTO } from "../utils/project.mapper"
+import { userService } from "../services/user.service"
 dotenv.config()
 
 /* ---------- handlers ---------- */
@@ -31,8 +32,6 @@ const createProject: RequestHandler = async (
 		if (!userId) {
 			return res.status(401).json({ error: "Unauthorized" })
 		}
-
-		logger.info({ userId }, "Creating project")
 		const newProject = await projectService.createProject({
 			projectName,
 			description,
@@ -68,4 +67,46 @@ const createProject: RequestHandler = async (
 	}
 }
 
-export default { list, getProjectById, createProject }
+const updateProject: RequestHandler<{ id: string }> = (req, res) => {
+	const project = projectService.getById(req.params.id)
+	if (!project) return res.status(404).json({ error: "Project not found" })
+	// gets the manager's userName based on its id
+	const managerFromDB = userService.get(project.manager)
+	const newData = {
+		manager: managerFromDB?.userName,
+		projectName: req.body.projectName,
+		description: req.body.description,
+	}
+	const result = projectService.updateProject(req.params.id, newData as Project)
+	if (!result) return res.status(404).json({ error: "Error updating project" })
+	const updatedProject = projectService.getById(req.params.id)
+	if (!updatedProject)
+		return res
+			.status(404)
+			.json({ error: "Error updating ... project not found ?!?!" })
+	// removes unwanted fields
+	const { ownerId, createdAt, updatedAt, ...cleanProject } = updatedProject
+	//const manager = userService.getPoject
+	return res.json({
+		message: "Project updated successfully",
+		project: cleanProject,
+	})
+}
+
+const deleteProject: RequestHandler<{ id: string }> = (req, res) => {
+	const project = projectService.getById(req.params.id)
+
+	if (!project) return res.status(404).json({ error: "Project not found" })
+	const deleteProject = projectService.deleteProject(req.params.id)
+	if (!deleteProject)
+		return res.status(404).json({ error: "Error deleting project" })
+	return res.json({ message: "Project deleted successfully" })
+}
+
+export default {
+	list,
+	getProjectById,
+	createProject,
+	deleteProject,
+	updateProject,
+}
