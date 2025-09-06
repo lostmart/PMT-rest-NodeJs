@@ -1,8 +1,9 @@
+-- db/migrations/create_projects.sql
 CREATE TABLE IF NOT EXISTS projects (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   projectName TEXT NOT NULL,
   description TEXT,
-  ownerId INTEGER,
+  ownerId TEXT, -- Changed to TEXT to match users(id)
   manager TEXT,
   createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
   updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,

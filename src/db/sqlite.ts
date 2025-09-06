@@ -24,7 +24,7 @@ db.pragma("foreign_keys = ON")
 export function migrate(): void {
 	db.exec(`
     CREATE TABLE IF NOT EXISTS users (
-      id         TEXT PRIMARY KEY,
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
       email      TEXT NOT NULL UNIQUE,
       userName   TEXT NOT NULL UNIQUE,
       firstName  TEXT NOT NULL,

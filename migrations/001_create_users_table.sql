@@ -1,6 +1,6 @@
 -- migrations/001_initial_schema.sql
 CREATE TABLE IF NOT EXISTS users (
-    id TEXT PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     email TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
     userName TEXT NOT NULL UNIQUE,

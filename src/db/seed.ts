@@ -1,44 +1,42 @@
-import { randomUUID } from "crypto"
 import Database from "better-sqlite3"
 
 import bcrypt from "bcrypt"
+import { User } from "../models/user"
 
 export function seedFixedUsers(db: Database.Database) {
 	const now = new Date().toISOString()
 
 	const insertUser = db.prepare(`
     INSERT OR IGNORE INTO users (
-      id, email, password, userName, firstName, lastName, role,
+      email, password, userName, firstName, lastName, role,
       createdAt, updatedAt
     ) VALUES (
-      @id, @email, @password, @userName, @firstName, @lastName, @role,
+      @email, @password, @userName, @firstName, @lastName, @role,
       @createdAt, @updatedAt
     )
   `)
 
 	const users = [
 		{
-			id: randomUUID(),
 			email: "admin@example.com",
-			password: bcrypt.hashSync("admin123@@", 10), // Hashed  pswd
-			userName: "admin",
+			password: bcrypt.hashSync("admin123@@", 10),
+			userName: "adminUser",
 			firstName: "Alice",
 			lastName: "Adminikhan",
 			role: "admin",
 			createdAt: now,
 			updatedAt: now,
-		},
+		} as User,
 		{
-			id: randomUUID(),
 			email: "guest@example.com",
-			password: bcrypt.hashSync("guest123@@", 10), // Hashed  pswd
+			password: bcrypt.hashSync("guest123@@", 10),
 			userName: "guest",
 			firstName: "Gary",
 			lastName: "Guest",
 			role: "guest",
 			createdAt: now,
 			updatedAt: now,
-		},
+		} as User,
 	]
 
 	for (const user of users) {

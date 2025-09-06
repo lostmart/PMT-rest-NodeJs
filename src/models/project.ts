@@ -7,7 +7,6 @@ export interface Project {
 	description: string
 	createdAt: string
 	updatedAt: string
-	remove?(key: string): any
 }
 
 export interface ProjectResponseDTO {
