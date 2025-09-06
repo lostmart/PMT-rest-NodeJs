@@ -1,6 +1,5 @@
 // db/seed.ts
 import Database from "better-sqlite3"
-import { randomUUID } from "crypto"
 import { Project } from "../models/project"
 
 export function seedProjects(db: Database.Database) {
@@ -31,7 +30,7 @@ export function seedProjects(db: Database.Database) {
 			description: "Description 1",
 			createdAt: new Date().toISOString(),
 			updatedAt: new Date().toISOString(),
-		},
+		} as Project,
 		{
 			projectName: "Project 2",
 			ownerId: users[1].id, // Use actual user ID
@@ -39,7 +38,7 @@ export function seedProjects(db: Database.Database) {
 			description: "Description 2",
 			createdAt: new Date().toISOString(),
 			updatedAt: new Date().toISOString(),
-		},
+		} as Project,
 		{
 			projectName: "Project 3",
 			ownerId: users[0].id, // Use actual user ID
@@ -47,7 +46,7 @@ export function seedProjects(db: Database.Database) {
 			description: "Description 3",
 			createdAt: new Date().toISOString(),
 			updatedAt: new Date().toISOString(),
-		},
+		} as Project,
 	]
 
 	for (const project of projects) {

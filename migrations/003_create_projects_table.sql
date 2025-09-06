@@ -3,8 +3,8 @@ CREATE TABLE IF NOT EXISTS projects (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   projectName TEXT NOT NULL,
   description TEXT,
-  ownerId TEXT, -- Changed to TEXT to match users(id)
-  manager TEXT,
+  ownerId INTEGER, 
+  manager INTEGER,
   createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
   updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (ownerId) REFERENCES users(id) ON DELETE SET NULL

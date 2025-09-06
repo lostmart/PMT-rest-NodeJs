@@ -71,7 +71,7 @@ const updateProject: RequestHandler<{ id: string }> = (req, res) => {
 	const project = projectService.getById(req.params.id)
 	if (!project) return res.status(404).json({ error: "Project not found" })
 	// gets the manager's userName based on its id
-	const managerFromDB = userService.get(project.manager)
+	const managerFromDB = userService.get(project.manager as string)
 	const newData = {
 		manager: managerFromDB?.userName,
 		projectName: req.body.projectName,
