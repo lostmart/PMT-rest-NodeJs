@@ -10,11 +10,12 @@ dotenv.config()
 import initializeDB from "./db"
 const db = initializeDB()
 
+// Then seed users
 import { seedFixedUsers } from "./db/seed"
-import { seedProjects } from "./db/projects.seed"
-
-// Then seed DB
 seedFixedUsers(db)
+
+// Then seed projects (AFTER users are seeded and tables exist)
+import { seedProjects } from "./db/projects.seed"
 seedProjects(db)
 
 const PORT = Number(process.env.PORT) || 3000

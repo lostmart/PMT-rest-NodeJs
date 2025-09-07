@@ -23,22 +23,32 @@ db.pragma("foreign_keys = ON")
 
 export function migrate(): void {
 	db.exec(`
-    CREATE TABLE IF NOT EXISTS users (
-      id         INTEGER PRIMARY KEY AUTOINCREMENT,
-      email      TEXT NOT NULL UNIQUE,
-      userName   TEXT NOT NULL UNIQUE,
-      firstName  TEXT NOT NULL,
-      password   TEXT NOT NULL,
-      lastName   TEXT NOT NULL,
-      role       TEXT NOT NULL,
-      createdAt  TEXT NOT NULL,
-      updatedAt  TEXT NOT NULL
-    );
+        CREATE TABLE IF NOT EXISTS users (
+            id         INTEGER PRIMARY KEY AUTOINCREMENT,
+            email      TEXT NOT NULL UNIQUE,
+            userName   TEXT NOT NULL UNIQUE,
+            firstName  TEXT NOT NULL,
+            password   TEXT NOT NULL,
+            lastName   TEXT NOT NULL,
+            role       TEXT NOT NULL,
+            createdAt  TEXT NOT NULL,
+            updatedAt  TEXT NOT NULL
+        );
 
-    CREATE INDEX IF NOT EXISTS idx_users_email     ON users(email);
-    CREATE INDEX IF NOT EXISTS idx_users_userName  ON users(userName);
-    CREATE INDEX IF NOT EXISTS idx_users_role      ON users(role);
-  `)
+        CREATE TABLE IF NOT EXISTS projects (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            projectName TEXT NOT NULL,
+            description TEXT,
+            ownerId INTEGER,
+            manager TEXT,
+            createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (ownerId) REFERENCES users(id) ON DELETE SET NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+        CREATE INDEX IF NOT EXISTS idx_users_userName ON users(userName);
+        CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
+        CREATE INDEX IF NOT EXISTS idx_projects_ownerId ON projects(ownerId);
+    `)
 }
-
-migrate()
