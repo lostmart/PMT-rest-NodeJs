@@ -21,6 +21,7 @@ export const db = new Database(DEFAULT_DB_PATH, { fileMustExist: false })
 db.pragma("journal_mode = WAL")
 db.pragma("foreign_keys = ON")
 
+// sqlite.ts - update your migrate() function
 export function migrate(): void {
 	db.exec(`
         CREATE TABLE IF NOT EXISTS users (
@@ -46,9 +47,20 @@ export function migrate(): void {
             FOREIGN KEY (ownerId) REFERENCES users(id) ON DELETE SET NULL
         );
 
+        CREATE TABLE IF NOT EXISTS projects_members (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            projectId INTEGER,
+            userId INTEGER,
+            FOREIGN KEY (projectId) REFERENCES projects(id) ON DELETE CASCADE,
+            FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
+            UNIQUE(projectId, userId) -- Prevent duplicate memberships
+        );
+
         CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
         CREATE INDEX IF NOT EXISTS idx_users_userName ON users(userName);
         CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
         CREATE INDEX IF NOT EXISTS idx_projects_ownerId ON projects(ownerId);
+        CREATE INDEX IF NOT EXISTS idx_projects_members_projectId ON projects_members(projectId);
+        CREATE INDEX IF NOT EXISTS idx_projects_members_userId ON projects_members(userId);
     `)
 }

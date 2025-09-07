@@ -1,17 +1,40 @@
-import { Project, ProjectsListResponseDTO } from "../models/project"
-import { ProjectResponseDTO } from "../models/project"
+import {
+	Project,
+	ProjectsListResponseDTO,
+	ProjectWithMembers,
+	ProjectResponseDTO,
+} from "../models/project"
 
-export const toProjectDTO = (project: Project): ProjectResponseDTO => {
-	return {
+// Type guard for better type safety
+const isProjectWithMembers = (project: any): project is ProjectWithMembers => {
+	return "members" in project && Array.isArray(project.members)
+}
+
+export const toProjectDTO = (
+	project: Project | ProjectWithMembers
+): ProjectResponseDTO => {
+	const baseDTO = {
 		id: project.id,
 		projectName: project.projectName,
-		members: project.members,
 		description: project.description,
+	}
+
+	// Using type guard
+	if (isProjectWithMembers(project)) {
+		return {
+			...baseDTO,
+			members: project.members,
+		}
+	}
+
+	return {
+		...baseDTO,
+		members: [],
 	}
 }
 
 export const toProjectsListResponseDTO = (
-	projects: Project[]
+	projects: (Project | ProjectWithMembers)[]
 ): ProjectsListResponseDTO => {
 	return {
 		projects: projects.map(toProjectDTO),

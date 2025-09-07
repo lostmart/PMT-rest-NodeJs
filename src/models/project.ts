@@ -3,7 +3,6 @@ export interface Project {
 	projectName: string
 	ownerId: number | string
 	manager: number | string
-	members?: number[]
 	description: string
 	createdAt: string
 	updatedAt: string
@@ -13,7 +12,7 @@ export interface ProjectResponseDTO {
 	id?: number
 	projectName: string
 	description: string
-	members?: number[]
+	members?: number[] | ProjectMember[]
 }
 
 export interface CreateProjectResponseDTO {
@@ -24,4 +23,17 @@ export interface CreateProjectResponseDTO {
 export interface ProjectsListResponseDTO {
 	projects: ProjectResponseDTO[]
 	count: number
+}
+
+export interface ProjectMember {
+	userId: number
+	email: string
+	userName: string
+	firstName: string
+	lastName: string
+	role: string
+}
+
+export interface ProjectWithMembers extends Project {
+	members: ProjectMember[]
 }

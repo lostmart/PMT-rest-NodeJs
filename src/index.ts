@@ -6,7 +6,7 @@ import dotenv from "dotenv"
 // Load environment variables FIRST
 dotenv.config()
 
-// Then initialize DB
+// Initialize DB and run migrations FIRST
 import initializeDB from "./db"
 const db = initializeDB()
 
@@ -14,9 +14,9 @@ const db = initializeDB()
 import { seedFixedUsers } from "./db/seed"
 seedFixedUsers(db)
 
-// Then seed projects (AFTER users are seeded and tables exist)
+// Then seed projects
 import { seedProjects } from "./db/projects.seed"
-seedProjects(db)
+seedProjects(db) // This will now also seed members
 
 const PORT = Number(process.env.PORT) || 3000
 

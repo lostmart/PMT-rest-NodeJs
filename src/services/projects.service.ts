@@ -1,10 +1,70 @@
 import { db } from "../db/sqlite"
-import { Project } from "../models/project"
+import { Project, ProjectWithMembers } from "../models/project"
 
 export const projectService = {
-	list: (): Project[] => {
-		const stmt = db.prepare("SELECT * FROM projects")
-		return stmt.all() as Project[]
+	list: (): ProjectWithMembers[] => {
+		// Get all projects
+		const projectsStmt = db.prepare("SELECT * FROM projects")
+		const projects = projectsStmt.all() as Project[]
+
+		// Get all project members with user details
+		const membersStmt = db.prepare(`
+            SELECT 
+                pm.projectId,
+                pm.userId,
+                u.email,
+                u.userName,
+                u.firstName,
+                u.lastName,
+                u.role
+            FROM projects_members pm
+            INNER JOIN users u ON pm.userId = u.id
+            ORDER BY pm.projectId
+        `)
+		const allMembers = membersStmt.all() as Array<{
+			projectId: number
+			userId: number
+			email: string
+			userName: string
+			firstName: string
+			lastName: string
+			role: string
+		}>
+
+		// Group members by projectId
+		const membersByProject = allMembers.reduce(
+			(acc, member) => {
+				if (!acc[member.projectId]) {
+					acc[member.projectId] = []
+				}
+				acc[member.projectId].push({
+					userId: member.userId,
+					email: member.email,
+					userName: member.userName,
+					firstName: member.firstName,
+					lastName: member.lastName,
+					role: member.role,
+				})
+				return acc
+			},
+			{} as Record<
+				number,
+				Array<{
+					userId: number
+					email: string
+					userName: string
+					firstName: string
+					lastName: string
+					role: string
+				}>
+			>
+		)
+
+		// Combine projects with their members
+		return projects.map((project) => ({
+			...project,
+			members: membersByProject[project.id] || [], // Empty array if no members
+		}))
 	},
 
 	getById: (id: string): Project => {

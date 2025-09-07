@@ -37,6 +37,26 @@ export function seedFixedUsers(db: Database.Database) {
 			createdAt: now,
 			updatedAt: now,
 		} as User,
+		{
+			email: "example@example.com",
+			password: bcrypt.hashSync("example123@@", 10),
+			userName: "exampleUser",
+			firstName: "Example",
+			lastName: "Exampleikhan",
+			role: "collaborator",
+			createdAt: now,
+			updatedAt: now,
+		} as User,
+		{
+			email: "collaborator@example.com",
+			password: bcrypt.hashSync("collaborator123@@", 10),
+			userName: "collaborator",
+			firstName: "Collaborator",
+			lastName: "Collaboratorikhan",
+			role: "collaborator",
+			createdAt: now,
+			updatedAt: now,
+		},
 	]
 
 	for (const user of users) {

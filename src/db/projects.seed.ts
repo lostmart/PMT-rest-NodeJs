@@ -1,57 +1,74 @@
-// db/seed.ts
+// db/projects.seed.ts
 import Database from "better-sqlite3"
 import { Project } from "../models/project"
 
 export function seedProjects(db: Database.Database) {
-	// First, get some actual user IDs from the users table
-	const getUsers = db.prepare("SELECT id FROM users LIMIT 2")
-	const users = getUsers.all() as { id: number }[]
+	// ... your existing projects seeding code ...
 
-	if (users.length < 2) {
-		console.log("❌ Need at least 2 users to seed projects")
+	console.log("✅ Seeded fixed projects.")
+
+	// Now seed project members
+	seedProjectMembers(db)
+}
+
+export function seedProjectMembers(db: Database.Database) {
+	// First, get all users and projects
+	const getUsers = db.prepare("SELECT id FROM users")
+	const getProjects = db.prepare("SELECT id FROM projects")
+
+	const users = getUsers.all() as { id: number }[]
+	const projects = getProjects.all() as { id: number }[]
+
+	if (users.length === 0 || projects.length === 0) {
+		console.log("❌ Need users and projects to seed project members")
 		return
 	}
 
-	console.log("📋 Found users:", users)
+	console.log("📋 Found users for members:", users)
+	console.log("📋 Found projects for members:", projects)
 
-	const insertProject = db.prepare(`
-    INSERT OR IGNORE INTO projects (
-      projectName, ownerId, manager, description, createdAt, updatedAt
-    ) VALUES (
-      @projectName, @ownerId, @manager, @description, @createdAt, @updatedAt
-    )
-  `)
+	const insertProjectMember = db.prepare(`
+        INSERT OR IGNORE INTO projects_members (
+            projectId, userId
+        ) VALUES (
+            @projectId, @userId
+        )
+    `)
 
-	const projects = [
-		{
-			projectName: "Project 1",
-			ownerId: users[0].id, // Use actual user ID
-			manager: users[1].id, // Use actual user ID
-			description: "Description 1",
-			createdAt: new Date().toISOString(),
-			updatedAt: new Date().toISOString(),
-		} as Project,
-		{
-			projectName: "Project 2",
-			ownerId: users[1].id, // Use actual user ID
-			manager: users[0].id, // Use actual user ID
-			description: "Description 2",
-			createdAt: new Date().toISOString(),
-			updatedAt: new Date().toISOString(),
-		} as Project,
-		{
-			projectName: "Project 3",
-			ownerId: users[0].id, // Use actual user ID
-			manager: users[1].id, // Use actual user ID
-			description: "Description 3",
-			createdAt: new Date().toISOString(),
-			updatedAt: new Date().toISOString(),
-		} as Project,
+	// Create diverse member assignments
+	const projectMembers = [
+		// Project 1: All users as members
+		{ projectId: projects[0].id, userId: users[0].id },
+		{ projectId: projects[0].id, userId: users[1].id },
+		{ projectId: projects[0].id, userId: users[2].id },
+		{ projectId: projects[0].id, userId: users[3].id },
+
+		// Project 2: Mixed members
+		{ projectId: projects[1].id, userId: users[0].id },
+		{ projectId: projects[1].id, userId: users[2].id },
+
+		// Project 3: Different mixed members
+		{ projectId: projects[2].id, userId: users[1].id },
+		{ projectId: projects[2].id, userId: users[3].id },
+
+		// Additional assignments for testing
+		{ projectId: projects[0].id, userId: users[3].id }, // Duplicate (should be ignored due to OR IGNORE)
+		{ projectId: projects[1].id, userId: users[1].id },
 	]
 
-	for (const project of projects) {
-		insertProject.run(project)
+	for (const member of projectMembers) {
+		try {
+			insertProjectMember.run(member)
+		} catch (error) {
+			console.log("⚠️  Could not add member (might be duplicate):", member)
+		}
 	}
 
-	console.log("✅ Seeded fixed projects.")
+	console.log("✅ Seeded project members.")
+
+	// Verify the seeding worked
+	const countMembers = db
+		.prepare("SELECT COUNT(*) as count FROM projects_members")
+		.get() as { count: number }
+	console.log(`📊 Total project members: ${countMembers.count}`)
 }
