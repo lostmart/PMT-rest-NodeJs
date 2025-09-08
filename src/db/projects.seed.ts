@@ -62,9 +62,6 @@ export function seedProjects(db: Database.Database) {
 	}
 
 	console.log(`✅ Seeded ${projectsCreated} projects.`)
-
-	// Now seed project members
-	seedProjectMembers(db)
 }
 
 
