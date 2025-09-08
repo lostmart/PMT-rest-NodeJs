@@ -11,8 +11,8 @@ import initializeDB from "./db"
 const db = initializeDB()
 
 // Then seed users
-// import { seedFixedUsers } from "./db/seed"
-// seedFixedUsers(db)
+import { seedFixedUsers } from "./db/seed"
+seedFixedUsers(db)
 
 // Then seed projects
 // import { seedProjects } from "./db/projects.seed"
