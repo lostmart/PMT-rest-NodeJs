@@ -2,6 +2,9 @@ import Database from "better-sqlite3"
 import fs from "fs"
 import path from "path"
 import { runMigrations } from "./migrate"
+import dotenv from "dotenv"
+
+dotenv.config()
 
 let db: Database.Database | null = null
 

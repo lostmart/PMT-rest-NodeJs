@@ -1,15 +1,72 @@
 // db/projects.seed.ts
 import Database from "better-sqlite3"
-import { Project } from "../models/project"
 
+// db/projects.seed.ts
 export function seedProjects(db: Database.Database) {
-	// ... your existing projects seeding code ...
+	console.log("🌱 Starting projects seeding...")
 
-	console.log("✅ Seeded fixed projects.")
+	// First, get some users to assign as owners/managers
+	const users = db.prepare("SELECT id FROM users").all() as { id: number }[]
+	console.log("📋 Available users:", users)
+
+	if (users.length === 0) {
+		console.log("❌ No users found to assign as project owners")
+		return
+	}
+
+	const insertProject = db.prepare(`
+		INSERT OR IGNORE INTO projects (
+			projectName, ownerId, manager, description, createdAt, updatedAt
+		) VALUES (
+			@projectName, @ownerId, @manager, @description, @createdAt, @updatedAt
+		)
+	`)
+
+	const projects = [
+		{
+			projectName: "Project 1",
+			ownerId: users[0].id,
+			manager: users[0].id,
+			description: "Description 1",
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString(),
+		},
+		{
+			projectName: "Project 2",
+			ownerId: users[1].id,
+			manager: users[0].id,
+			description: "Description 2",
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString(),
+		},
+		{
+			projectName: "Project 3",
+			ownerId: users[0].id,
+			manager: users[1].id,
+			description: "Description 3",
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString(),
+		},
+	]
+
+	let projectsCreated = 0
+	for (const project of projects) {
+		try {
+			const result = insertProject.run(project)
+			if (result.changes > 0) {
+				projectsCreated++
+			}
+		} catch (error) {
+			console.error("❌ Error inserting project:", error)
+		}
+	}
+
+	console.log(`✅ Seeded ${projectsCreated} projects.`)
 
 	// Now seed project members
 	seedProjectMembers(db)
 }
+
 
 export function seedProjectMembers(db: Database.Database) {
 	// First, get all users and projects
@@ -27,8 +84,9 @@ export function seedProjectMembers(db: Database.Database) {
 	console.log("📋 Found users for members:", users)
 	console.log("📋 Found projects for members:", projects)
 
+	// FIXED: Added 'INTO' keyword
 	const insertProjectMember = db.prepare(`
-        INSERT OR IGNORE INTO projects_members (
+        INSERT INTO projects_members (
             projectId, userId
         ) VALUES (
             @projectId, @userId
@@ -52,19 +110,23 @@ export function seedProjectMembers(db: Database.Database) {
 		{ projectId: projects[2].id, userId: users[3].id },
 
 		// Additional assignments for testing
-		{ projectId: projects[0].id, userId: users[3].id }, // Duplicate (should be ignored due to OR IGNORE)
+		{ projectId: projects[0].id, userId: users[3].id }, // Duplicate
 		{ projectId: projects[1].id, userId: users[1].id },
 	]
 
+	let membersCreated = 0
 	for (const member of projectMembers) {
 		try {
-			insertProjectMember.run(member)
+			const result = insertProjectMember.run(member)
+			if (result.changes > 0) {
+				membersCreated++
+			}
 		} catch (error) {
 			console.log("⚠️  Could not add member (might be duplicate):", member)
 		}
 	}
 
-	console.log("✅ Seeded project members.")
+	console.log(`✅ Seeded ${membersCreated} project members.`)
 
 	// Verify the seeding worked
 	const countMembers = db
