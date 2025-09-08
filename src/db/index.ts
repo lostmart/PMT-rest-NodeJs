@@ -38,6 +38,14 @@ export const initializeDB = (): Database.Database => {
 		})
 		migrate()
 
+		// ADD THIS: Check what tables/columns actually exist
+		try {
+			const userTableInfo = db.prepare("PRAGMA table_info(users)").all()
+			console.log("[DB DEBUG] Users table schema:", userTableInfo)
+		} catch (error) {
+			console.log("[DB DEBUG] Could not inspect users table:", error)
+		}
+
 		console.log("[DB] PATH:", DB_PATH, "| env:", env)
 		return db
 	} catch (err) {
