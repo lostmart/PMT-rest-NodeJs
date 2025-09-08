@@ -6,6 +6,15 @@ export function runMigrations(db: Database.Database) {
 	const MIGRATIONS_DIR = path.resolve("migrations")
 	const APPLIED_TABLE = "applied_migrations"
 
+	// In db/migrate.ts
+	if (!fs.existsSync(MIGRATIONS_DIR)) {
+		console.log(
+			`[migration] No migrations directory found at ${MIGRATIONS_DIR}`
+		)
+		// Consider creating essential tables here as fallback
+		return
+	}
+
 	// Ensure applied_migrations table exists
 	db.prepare(
 		`
