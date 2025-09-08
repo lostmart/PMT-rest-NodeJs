@@ -3,7 +3,8 @@ import path from "path"
 import Database from "better-sqlite3"
 
 export function runMigrations(db: Database.Database) {
-	const MIGRATIONS_DIR = path.resolve("migrations")
+	const MIGRATIONS_DIR = path.resolve(__dirname, "..", "migrations")
+
 	const APPLIED_TABLE = "applied_migrations"
 
 	// Ensure applied_migrations table exists
