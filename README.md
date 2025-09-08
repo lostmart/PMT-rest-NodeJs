@@ -72,7 +72,10 @@ It is built with **Node.js**, **TypeScript**, and **Express**.
 ## 📂 Project Structure
 
 ```
-├─ data/ # local SQLite files (gitignored: app.db, -wal, -shm)
+├─ data/ # local SQLite files
+│ ├─ app.db 			  # pre-populated with dummy seed data (testing only)
+│ ├─ app.db-shm 		  # SQLite shared memory file (runtime)
+│ └─ app.db-wal 		  # SQLite write-ahead log (runtime)
 ├─ src/
 │ ├─ index.ts             # process bootstrap (reads PORT, starts server)
 │ ├─ server.ts            # Express app wiring (middlewares, routes, errors)
