@@ -1,7 +1,7 @@
 import Database from "better-sqlite3"
 import fs from "fs"
 import path from "path"
-import { runMigrations } from "./migrate"
+// import { runMigrations } from "./migrate"
 import dotenv from "dotenv"
 
 dotenv.config()
@@ -26,7 +26,7 @@ export const initializeDB = (): Database.Database => {
 	})
 
 	// ⬇️ Apply all non-applied migrations
-	runMigrations(db)
+	// runMigrations(db)
 	console.log("[DB] PATH:", DB_PATH)
 
 	return db
