@@ -10,6 +10,7 @@ dotenv.config()
 import initializeDB from "./db"
 const db = initializeDB()
 
+if (!db) throw new Error("Failed to initialize DB")
 
 const PORT = Number(process.env.PORT) || 3000
 
