@@ -6,7 +6,7 @@ import { projectValidation } from "../middleware/project.validation"
 const router = Router()
 
 // GET all projects
-router.get("/", authMiddleware, projectController.list)
+router.get("/", projectController.list)
 
 // GET project by ID
 router.get("/:id", authMiddleware, projectController.getProjectById)
