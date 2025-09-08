@@ -30,6 +30,7 @@ RUN addgroup -S app && adduser -S app -G app
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/migrations ./migrations
 
 # Data dir for SQLite (persist with a volume)
 RUN mkdir -p /app/data && chown -R app:app /app
