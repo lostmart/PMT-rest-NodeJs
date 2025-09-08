@@ -12,7 +12,16 @@ const db = initializeDB()
 
 if (!db) throw new Error("Failed to initialize DB")
 
-initSeeding()
+// Seed DB with users, then projects and finally project members
+const sedded = async () => {
+	try {
+		await initSeeding()
+	} catch (error) {
+		logger.error(error)
+	}
+}
+
+if (!sedded()) throw new Error("Failed to seed DB")
 
 const PORT = Number(process.env.PORT) || 3000
 
