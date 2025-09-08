@@ -1,6 +1,6 @@
 import { app } from "./server"
 import { logger } from "./utils/logger"
-
+import initSeeding from "./scripts/seed"
 import dotenv from "dotenv"
 
 // Load environment variables FIRST
@@ -11,6 +11,8 @@ import initializeDB from "./db"
 const db = initializeDB()
 
 if (!db) throw new Error("Failed to initialize DB")
+
+initSeeding()
 
 const PORT = Number(process.env.PORT) || 3000
 
