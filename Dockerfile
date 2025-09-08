@@ -42,3 +42,7 @@ HEALTHCHECK --interval=10s --timeout=3s --retries=3 \
   CMD wget -qO- http://localhost:3000/api/health || exit 1
 
 CMD ["node", "dist/index.js"]
+
+
+RUN ls -la /app/migrations/  # Check if migrations directory exists
+RUN find /app -name "*.sql"  # Find all SQL files in the image
