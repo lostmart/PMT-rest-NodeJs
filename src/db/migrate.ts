@@ -3,7 +3,9 @@ import path from "path"
 import Database from "better-sqlite3"
 
 export function runMigrations(db: Database.Database) {
-	const MIGRATIONS_DIR = path.resolve(__dirname, "..", "migrations")
+	const MIGRATIONS_DIR = path.resolve("migrations")
+
+	console.log(`[MIGRATION DEBUG] Looking at: ${MIGRATIONS_DIR}`)
 
 	const APPLIED_TABLE = "applied_migrations"
 
@@ -74,31 +76,58 @@ export function runMigrations(db: Database.Database) {
 		throw error
 	}
 }
-
 function createEssentialTables(db: Database.Database) {
 	console.log("[migration] Creating essential tables programmatically")
 
 	try {
-		// Create your essential tables here based on your seed data requirements
 		db.exec(`
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                email TEXT UNIQUE NOT NULL,
-                name TEXT NOT NULL,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                email TEXT NOT NULL UNIQUE,
+                password TEXT NOT NULL,
+                userName TEXT NOT NULL UNIQUE,
+                firstName TEXT NOT NULL,
+                lastName TEXT NOT NULL,
+                role TEXT NOT NULL CHECK (role IN ('admin', 'collaborator', 'guest')),
+                createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
             );
             
-            -- Add other tables that your seed data requires
-            CREATE TABLE IF NOT EXISTS posts (
+            CREATE TABLE IF NOT EXISTS tasks (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 title TEXT NOT NULL,
-                content TEXT,
+                description TEXT,
+                status TEXT DEFAULT 'pending',
                 user_id INTEGER,
+                project_id INTEGER,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users (id)
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id),
+                FOREIGN KEY (project_id) REFERENCES projects (id)
             );
             
-            -- Add any other tables referenced in your seed data
+            CREATE TABLE IF NOT EXISTS projects (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                description TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+            
+            CREATE TABLE IF NOT EXISTS project_members (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                project_id INTEGER,
+                user_id INTEGER,
+                role TEXT DEFAULT 'member',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (project_id) REFERENCES projects (id),
+                FOREIGN KEY (user_id) REFERENCES users (id),
+                UNIQUE(project_id, user_id)
+            );
+            
+            -- Create indexes for better performance
+            CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+            CREATE INDEX IF NOT EXISTS idx_users_userName ON users(userName);
         `)
 
 		console.log("[migration] Essential tables created successfully")

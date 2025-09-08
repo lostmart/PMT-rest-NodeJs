@@ -23,6 +23,8 @@ export const initializeDB = (): Database.Database => {
 		throw new Error("DB_PATH env var is not set")
 	}
 
+	console.log(`[DB DEBUG] Raw DB_PATH from env: ${rawPath}`) // ← ADD THIS
+
 	try {
 		if (!isMemory) {
 			const dir = path.dirname(DB_PATH)
@@ -37,6 +39,8 @@ export const initializeDB = (): Database.Database => {
 			runMigrations(db)
 		})
 		migrate()
+
+		console.log(`[DB DEBUG] Resolved DB_PATH: ${DB_PATH}`) // ← ADD THIS
 
 		// ADD THIS: Check what tables/columns actually exist
 		try {
