@@ -11,12 +11,12 @@ import initializeDB from "./db"
 const db = initializeDB()
 
 // Then seed users
-import { seedFixedUsers } from "./db/seed"
-seedFixedUsers(db)
+// import { seedFixedUsers } from "./db/seed"
+// seedFixedUsers(db)
 
 // Then seed projects
-import { seedProjects } from "./db/projects.seed"
-seedProjects(db) // This will now also seed members
+// import { seedProjects } from "./db/projects.seed"
+// seedProjects(db) // This will now also seed members
 
 const PORT = Number(process.env.PORT) || 3000
 
