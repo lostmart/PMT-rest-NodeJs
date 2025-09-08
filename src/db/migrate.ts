@@ -6,15 +6,6 @@ export function runMigrations(db: Database.Database) {
 	const MIGRATIONS_DIR = path.resolve("migrations")
 	const APPLIED_TABLE = "applied_migrations"
 
-	// In db/migrate.ts
-	if (!fs.existsSync(MIGRATIONS_DIR)) {
-		console.log(
-			`[migration] No migrations directory found at ${MIGRATIONS_DIR}`
-		)
-		// Consider creating essential tables here as fallback
-		return
-	}
-
 	// Ensure applied_migrations table exists
 	db.prepare(
 		`
@@ -32,8 +23,9 @@ export function runMigrations(db: Database.Database) {
 	// Check if migrations directory exists
 	if (!fs.existsSync(MIGRATIONS_DIR)) {
 		console.log(
-			`[migration] No migrations directory found at ${MIGRATIONS_DIR}, skipping migrations`
+			`[migration] No migrations directory found at ${MIGRATIONS_DIR}, creating essential tables programmatically`
 		)
+		createEssentialTables(db)
 		return
 	}
 
@@ -44,7 +36,10 @@ export function runMigrations(db: Database.Database) {
 			.sort()
 
 		if (files.length === 0) {
-			console.log("[migration] No migration files found, skipping migrations")
+			console.log(
+				"[migration] No migration files found, creating essential tables programmatically"
+			)
+			createEssentialTables(db)
 			return
 		}
 
@@ -75,6 +70,39 @@ export function runMigrations(db: Database.Database) {
 		}
 	} catch (error) {
 		console.error("[migration] Error during migration process:", error)
+		throw error
+	}
+}
+
+function createEssentialTables(db: Database.Database) {
+	console.log("[migration] Creating essential tables programmatically")
+
+	try {
+		// Create your essential tables here based on your seed data requirements
+		db.exec(`
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                email TEXT UNIQUE NOT NULL,
+                name TEXT NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+            
+            -- Add other tables that your seed data requires
+            CREATE TABLE IF NOT EXISTS posts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                content TEXT,
+                user_id INTEGER,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            );
+            
+            -- Add any other tables referenced in your seed data
+        `)
+
+		console.log("[migration] Essential tables created successfully")
+	} catch (error) {
+		console.error("[migration] Failed to create essential tables:", error)
 		throw error
 	}
 }
