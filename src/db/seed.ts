@@ -2,6 +2,8 @@
 import Database from "better-sqlite3"
 import bcrypt from "bcrypt"
 import { User } from "../models/user"
+import { seedProjects, seedProjectMembers } from "./projects.seed"
+import { seedTasks } from "./tasks.seed"
 
 /**
  * Seed initial users into the database
@@ -72,6 +74,13 @@ export function seedDatabase(db: Database.Database) {
 
 	seedTransaction()
 	console.log(`✅ Seeded ${users.length} users`)
+
+	// Seed projects and members after users
+	seedProjects(db)
+	seedProjectMembers(db)
+
+	// Seed tasks after projects and members
+	seedTasks(db)
 }
 
 /**

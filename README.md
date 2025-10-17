@@ -144,17 +144,26 @@ API available at:
 - Implement Projects, Tasks, Users endpoints
 - Authentication & authorization
 
-## 🌱 Seeding Users
+## 🌱 Database Seeding
 
-To seed the database with initial users, run:
+The database is automatically seeded on first run when tables are empty. No manual commands needed!
 
-```bash
-npx ts-node src/scripts/seed.ts
-```
-
-**NOTE:** This ode will automattically run itself if the user's tabe is empty !
+### 🔄 Seeding Flow
 
 This will insert two users into the SQLite database:
+The seeding process follows a strict dependency order:
+
+```md
+1. Tables Created (sqlite.ts)
+   ↓
+2. Users Seeded (seed.ts)
+   ↓
+3. Projects Seeded (projects.seed.ts)
+   ↓
+4. Project Members Assigned (projects.seed.ts)
+   ↓
+5. Tasks Created & Assigned (tasks.seed.ts)
+```
 
 ```ts
 const users = [
@@ -182,6 +191,47 @@ const users = [
 	},
 ]
 ```
+
+### 📁 Seeding Architecture
+
+```
+src/db/
+├── sqlite.ts           # Creates tables + triggers auto-seed
+├── seed.ts             # Orchestrates seeding (users → projects → tasks)
+├── projects.seed.ts    # Seeds projects & project members
+└── tasks.seed.ts       # Seeds tasks with assignments
+```
+
+### 🎯 How It Works
+
+1. **Automatic**: When you start the server, `sqlite.ts` runs automatically
+2. **Idempotent**: Uses `INSERT OR IGNORE` - safe to run multiple times
+3. **Smart**: Only seeds if tables are empty (checks user count)
+4. **Dependency-aware**: Seeds in correct order to maintain referential integrity
+
+### 📊 Sample Data Included
+
+- **4 Users**: admin, guest, 2 collaborators (all with hashed passwords)
+- **3 Projects**: each owned by different users
+- **Project Members**: users assigned to multiple projects
+- **14 Tasks**: distributed across projects with various statuses (todo/in_progress/done)
+
+### 🔧 Manual Seeding (Optional)
+
+If you need to re-seed:
+
+1. Delete the database: `rm data/app.db`
+2. Restart the server: `npm run dev`
+
+The database will be recreated and automatically seeded with fresh data.
+
+### ⚙️ Seed Configuration
+
+All seed data is defined in:
+
+- `src/db/seed.ts` - User accounts
+- `src/db/projects.seed.ts` - Projects and team assignments
+- `src/db/tasks.seed.ts` - Tasks with realistic descriptions
 
 ## Request body validation
 

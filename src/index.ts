@@ -8,12 +8,7 @@ dotenv.config()
 // Initialize DB and run migrations FIRST
 
 async function bootstrap() {
-	// Initialize DB (runs migrations inside initializeDB)
-	//const db = initializeDB()
-	// if (!db) throw new Error("Failed to initialize DB")
-
 	// Start server
-
 	const PORT = Number(process.env.PORT) || 3000
 	app.listen(PORT, () => {
 		logger.info(`API running on http://localhost:${PORT}/api/health`)

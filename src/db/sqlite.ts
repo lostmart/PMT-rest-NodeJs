@@ -2,6 +2,7 @@
 import Database from "better-sqlite3"
 import path from "path"
 import fs from "fs"
+import { autoSeed } from "./seed"
 
 const DB_PATH = path.join(process.cwd(), "data", "app.db")
 
@@ -42,7 +43,7 @@ db.exec(`
 db.exec(`
   CREATE TABLE IF NOT EXISTS projects (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    projectName TEXT NOT NULL,
+    projectName TEXT NOT NULL UNIQUE,
     ownerId INTEGER NOT NULL,
     manager TEXT,
     description TEXT,
@@ -67,10 +68,31 @@ db.exec(`
   )
 `)
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS projects_members (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    projectId INTEGER NOT NULL,
+    userId INTEGER NOT NULL,
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (projectId) REFERENCES projects(id) ON DELETE CASCADE,
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE(projectId, userId)
+  )
+`)
+
 console.log("✅ Database tables created")
 
 // ============================================
 // Auto-seed if empty
+
+// ✅ Tables get created
+// ✅ autoSeed(db) is called
+// ✅ It checks if users table is empty
+// ✅ If empty → seeds, if not → skips
+// ✅ Only runs once when the module is first imported
+// ✅ Safe to run multiple times (uses INSERT OR IGNORE)
 // ============================================
 
+autoSeed(db)
 
+console.log("✅ Database auto-seeded")
