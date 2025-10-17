@@ -3,8 +3,17 @@ import Database from "better-sqlite3"
 import path from "path"
 import fs from "fs"
 import { autoSeed } from "./seed"
+import dotenv from "dotenv"
 
-const DB_PATH = path.join(process.cwd(), "data", "app.db")
+// Load environment variables
+dotenv.config()
+
+// Use env variable with fallback
+const DB_PATH = process.env.DB_PATH
+	? path.join(process.cwd(), process.env.DB_PATH)
+	: path.join(process.cwd(), "data", "app.db")
+
+console.log(`📂 Using database at: ${DB_PATH}`)
 
 // Ensure data directory exists
 const dbDir = path.dirname(DB_PATH)
