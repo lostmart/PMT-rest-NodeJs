@@ -79,6 +79,14 @@ export function runMigrations(db: Database.Database) {
 function createEssentialTables(db: Database.Database) {
 	console.log("[migration] Creating essential tables programmatically")
 
+	// const insertProject = db.prepare(`
+	// 	INSERT OR IGNORE INTO projects (
+	// 		projectName, ownerId, manager, description, createdAt, updatedAt
+	// 	) VALUES (
+	// 		@projectName, @ownerId, @manager, @description, @createdAt, @updatedAt
+	// 	)
+	// `)
+
 	try {
 		db.exec(`
             CREATE TABLE IF NOT EXISTS users (
@@ -107,12 +115,17 @@ function createEssentialTables(db: Database.Database) {
             );
             
             CREATE TABLE IF NOT EXISTS projects (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                description TEXT,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            );
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				projectName TEXT NOT NULL,
+				ownerId INTEGER NOT NULL,
+				manager TEXT,
+				description TEXT,
+				createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+				updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+				FOREIGN KEY (ownerId) REFERENCES users(id) ON DELETE CASCADE
+			);
+
+			
             
             CREATE TABLE IF NOT EXISTS project_members (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,

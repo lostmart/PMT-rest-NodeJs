@@ -1,7 +1,7 @@
 export type UserRole = "admin" | "collaborator" | "guest"
 
 export interface User {
-	id: string // UUID string in backend (OK: FE accepts number|string)
+	id?: string // UUID string in backend (OK: FE accepts number|string)
 	email: string
 	password: string
 	userName: string

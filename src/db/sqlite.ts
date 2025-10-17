@@ -1,66 +1,76 @@
+// src/db/sqlite.ts
 import Database from "better-sqlite3"
-import fs from "node:fs"
-import path from "node:path"
-import dotenv from "dotenv"
+import path from "path"
+import fs from "fs"
 
-// Load environment variables FIRST
-dotenv.config()
+const DB_PATH = path.join(process.cwd(), "data", "app.db")
 
-const DEFAULT_DB_PATH = process.env.DB_PATH
-// const dbPath = path.resolve(DEFAULT_DB_PATH)
-
-if (!DEFAULT_DB_PATH) {
-	throw new Error("DB_PATH env var is not set")
+// Ensure data directory exists
+const dbDir = path.dirname(DB_PATH)
+if (!fs.existsSync(dbDir)) {
+	fs.mkdirSync(dbDir, { recursive: true })
 }
-// ensure /data exists
-fs.mkdirSync(path.dirname(DEFAULT_DB_PATH), { recursive: true })
 
-export const db = new Database(DEFAULT_DB_PATH, { fileMustExist: false })
+// Create database connection
+export const db = new Database(DB_PATH)
 
-// sensible pragmas
+// Performance optimizations
 db.pragma("journal_mode = WAL")
+db.pragma("synchronous = NORMAL")
 db.pragma("foreign_keys = ON")
 
-// sqlite.ts - update your migrate() function
-export function migrate(): void {
-	db.exec(`
-        CREATE TABLE IF NOT EXISTS users (
-            id         INTEGER PRIMARY KEY AUTOINCREMENT,
-            email      TEXT NOT NULL UNIQUE,
-            userName   TEXT NOT NULL UNIQUE,
-            firstName  TEXT NOT NULL,
-            password   TEXT NOT NULL,
-            lastName   TEXT NOT NULL,
-            role       TEXT NOT NULL,
-            createdAt  TEXT NOT NULL,
-            updatedAt  TEXT NOT NULL
-        );
+console.log("✅ Connected to SQLite database")
 
-        CREATE TABLE IF NOT EXISTS projects (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            projectName TEXT NOT NULL,
-            description TEXT,
-            ownerId INTEGER,
-            manager TEXT,
-            createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-            updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (ownerId) REFERENCES users(id) ON DELETE SET NULL
-        );
+// ============================================
+// Create Tables
+// ============================================
 
-        CREATE TABLE IF NOT EXISTS projects_members (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            projectId INTEGER,
-            userId INTEGER,
-            FOREIGN KEY (projectId) REFERENCES projects(id) ON DELETE CASCADE,
-            FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
-            UNIQUE(projectId, userId) -- Prevent duplicate memberships
-        );
+db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    userName TEXT UNIQUE NOT NULL,
+    firstName TEXT NOT NULL,
+    lastName TEXT NOT NULL,
+    role TEXT NOT NULL CHECK(role IN ('admin', 'guest', 'collaborator')),
+    createdAt DATETIME NOT NULL,
+    updatedAt DATETIME NOT NULL
+  )
+`)
 
-        CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-        CREATE INDEX IF NOT EXISTS idx_users_userName ON users(userName);
-        CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
-        CREATE INDEX IF NOT EXISTS idx_projects_ownerId ON projects(ownerId);
-        CREATE INDEX IF NOT EXISTS idx_projects_members_projectId ON projects_members(projectId);
-        CREATE INDEX IF NOT EXISTS idx_projects_members_userId ON projects_members(userId);
-    `)
-}
+db.exec(`
+  CREATE TABLE IF NOT EXISTS projects (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    projectName TEXT NOT NULL,
+    ownerId INTEGER NOT NULL,
+    manager TEXT,
+    description TEXT,
+    createdAt DATETIME NOT NULL,
+    updatedAt DATETIME NOT NULL,
+    FOREIGN KEY (ownerId) REFERENCES users(id) ON DELETE CASCADE
+  )
+`)
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS tasks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    description TEXT,
+    projectId INTEGER NOT NULL,
+    assignedTo INTEGER,
+    status TEXT NOT NULL DEFAULT 'todo' CHECK(status IN ('todo', 'in_progress', 'done')),
+    createdAt DATETIME NOT NULL,
+    updatedAt DATETIME NOT NULL,
+    FOREIGN KEY (projectId) REFERENCES projects(id) ON DELETE CASCADE,
+    FOREIGN KEY (assignedTo) REFERENCES users(id) ON DELETE SET NULL
+  )
+`)
+
+console.log("✅ Database tables created")
+
+// ============================================
+// Auto-seed if empty
+// ============================================
+
+
